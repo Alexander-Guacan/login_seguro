@@ -1,0 +1,393 @@
+name: Security Analysis (ML + Heuristics)
+
+on:
+  pull_request:
+    branches:
+      - test
+    types: [opened, synchronize, reopened]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+
+    steps:
+    # -------------------------------------------------
+    # 1. Checkout
+    # -------------------------------------------------
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # -------------------------------------------------
+    # 2. Setup Python
+    # -------------------------------------------------
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    # -------------------------------------------------
+    # 3. Install dependencies
+    # -------------------------------------------------
+    - name: Install minimal dependencies for pipeline
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy scikit-learn joblib requests
+
+    # -------------------------------------------------
+    # 4. Notify Telegram - Start
+    # -------------------------------------------------
+    - name: Notify start of analysis
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_start "Etapa 1 - Análisis de Seguridad"
+
+    # -------------------------------------------------
+    # 5. Get changed files (dev -> test)
+    # -------------------------------------------------
+    - name: Get changed files
+      run: |
+        git fetch origin ${{ github.base_ref }}
+        git diff --name-only origin/${{ github.base_ref }} -- \
+          frontend backend > changed_files.txt || true
+
+    # -------------------------------------------------
+    # 6. Run security scanner (ML + Heuristics)
+    # -------------------------------------------------
+    - name: Run security scanner
+      run: |
+        python security_scan/scanner.py changed_files.txt
+
+    # -------------------------------------------------
+    # 7. Generate HTML security report
+    # -------------------------------------------------
+    - name: Generate HTML security report
+      run: |
+        python security_scan/generate_report.py security_scan/reports/security_report.json
+
+    # -------------------------------------------------
+    # 8. Upload security report (HTML)
+    # -------------------------------------------------
+    - name: Upload security report artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: security-report
+        path: security_scan/reports/
+
+    # -------------------------------------------------
+    # 9. Notify scan results
+    # -------------------------------------------------
+    - name: Notify scan results
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py scan_result security_scan/reports/security_report.json "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+    # -------------------------------------------------
+    # 10. Fail pipeline if HIGH or CRITICAL
+    # -------------------------------------------------
+    - name: Enforce security policy
+      id: policy
+      run: |
+        python - << 'EOF'
+        import json, sys
+
+        with open("security_scan/reports/security_report.json") as f:
+            report = json.load(f)
+
+        for file, data in report.items():
+            if data["verdict"] in ["HIGH", "CRITICAL"]:
+                print(f"❌ Vulnerabilidad detectada en {file}: {data['verdict']}")
+                sys.exit(1)
+
+        print("✅ Código seguro")
+        EOF
+
+    # -------------------------------------------------
+    # 11. Notify success
+    # -------------------------------------------------
+    - name: Notify success
+      if: success()
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_success "Etapa 1 - Análisis de Seguridad"
+
+    # -------------------------------------------------
+    # 12. Create Issue if failed
+    # -------------------------------------------------
+    - name: Create security issue
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: "🚨 Vulnerabilidades detectadas - Fixing required",
+            body: `
+            Se detectaron vulnerabilidades **HIGH o CRITICAL** durante la Etapa 1 del pipeline.
+
+            📌 Pull Request: #${context.payload.pull_request.number}
+            👤 Autor: @${context.payload.pull_request.user.login}
+            📄 **Reporte completo (HTML + JSON):**
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+            ❗ El merge ha sido bloqueado automáticamente.
+            `,
+            labels: ["fixing required"]
+          })
+
+    # -------------------------------------------------
+    # 13. Notify failure
+    # -------------------------------------------------
+    - name: Notify failure
+      if: failure()
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_fail "Etapa 1 - Análisis de Seguridad"
+
+  testing:
+    needs: security-scan
+    if: success()
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+
+    outputs:
+      tests_passed: ${{ steps.test_result.outputs.tests_passed }}
+
+    steps:
+    # -------------------------------------------------
+    # 1. Checkout repository
+    # -------------------------------------------------
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # -------------------------------------------------
+    # 2. Setup Python
+    # -------------------------------------------------
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    # -------------------------------------------------
+    # 3. Install minimal Python dependencies
+    # -------------------------------------------------
+    - name: Install Python dependencies for notifications and tests
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests fastapi pytest httpx dotenv
+
+    # -------------------------------------------------
+    # 4. Notify Telegram - Stage 2 start
+    # -------------------------------------------------
+    - name: Notify start of Stage 2
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_start "Etapa 2 - Merge automático y pruebas"
+
+    # -------------------------------------------------
+    # 5. Configure Git identity
+    # -------------------------------------------------
+    - name: Configure Git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    # -------------------------------------------------
+    # 6. Auto-merge dev -> test
+    # -------------------------------------------------
+    - name: Auto merge dev into test
+      run: |
+        git checkout test
+        git merge origin/develop --no-edit
+        git push origin test
+
+    # -------------------------------------------------
+    # 7. Run backend tests
+    # -------------------------------------------------
+    - name: Run backend tests
+      working-directory: src/backend
+      run: |
+        python -m pytest
+      continue-on-error: true
+      id: backend_tests
+
+    # -------------------------------------------------
+    # 8. Setup Node.js
+    # -------------------------------------------------
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+
+    # -------------------------------------------------
+    # 9. Run frontend tests
+    # -------------------------------------------------
+    - name: Run frontend tests
+      working-directory: src/frontend
+      run: |
+        npm ci
+        npm run test
+      continue-on-error: true
+      id: frontend_tests
+
+    # -------------------------------------------------
+    # 10. Evaluate test results
+    # -------------------------------------------------
+    - name: Evaluate test results
+      id: test_result
+      run: |
+        if [[ "${{ steps.backend_tests.outcome }}" == "failure" || "${{ steps.frontend_tests.outcome }}" == "failure" ]]; then
+          echo "tests_passed=false" >> $GITHUB_OUTPUT
+        else
+          echo "tests_passed=true" >> $GITHUB_OUTPUT
+        fi
+
+    # -------------------------------------------------
+    # 11. Notify Telegram - Test results
+    # -------------------------------------------------
+    - name: Notify test results
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        if [[ "${{ steps.test_result.outputs.tests_passed }}" == "true" ]]; then
+          python security_scan/notify_telegram.py stage_success "Tests backend y frontend ejecutados correctamente"
+        else
+          python security_scan/notify_telegram.py stage_fail "Fallaron uno o más tests (backend/frontend)"
+        fi
+
+    # -------------------------------------------------
+    # 12. Create issue on test failure
+    # -------------------------------------------------
+    - name: Create issue on test failure
+      if: steps.test_result.outputs.tests_passed == 'false'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          github.rest.issues.create({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            title: "❌ Tests fallidos tras merge automático",
+            body: `
+            Se completó correctamente la **Etapa 1**, pero fallaron las pruebas en la **Etapa 2**.
+
+            📌 Backend tests: ${{ steps.backend_tests.outcome }}
+            📌 Frontend tests: ${{ steps.frontend_tests.outcome }}
+
+            🔗 Workflow:
+            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            `,
+            labels: ["tests-failed"]
+          })
+
+    # -------------------------------------------------
+    # 13. Notify Telegram - Stage 2 failure
+    # -------------------------------------------------
+    - name: Notify test failure
+      if: steps.test_result.outputs.tests_passed == 'false'
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_fail "Etapa 2 - Fallaron las pruebas"
+
+    # -------------------------------------------------
+    # 14. Notify Telegram - Stage 2 success
+    # -------------------------------------------------
+    - name: Notify Stage 2 success
+      if: steps.test_result.outputs.tests_passed == 'true'
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_success "Etapa 2 - Merge y pruebas completadas correctamente"
+
+  deploy:
+    needs: testing
+    if: needs.testing.outputs.tests_passed == 'true'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+    # -------------------------------------------------
+    # 1. Checkout repository
+    # -------------------------------------------------
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    # -------------------------------------------------
+    # 2. Configure Git identity
+    # -------------------------------------------------
+    - name: Configure Git identity
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+    # -------------------------------------------------
+    # 3. Setup Python (Telegram notifications)
+    # -------------------------------------------------
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install notification dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    # -------------------------------------------------
+    # 4. Notify Telegram - Stage 3 start
+    # -------------------------------------------------
+    - name: Notify start of Stage 3
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_start "Etapa 3 - Release a producción (main)"
+
+    # -------------------------------------------------
+    # 5. Auto-merge test -> main
+    # -------------------------------------------------
+    - name: Auto merge test into main
+      run: |
+        git checkout main
+        git merge origin/test --no-edit
+        git push origin main
+
+    # -------------------------------------------------
+    # 6. Notify Telegram - Stage 3 success
+    # -------------------------------------------------
+    - name: Notify Stage 3 success
+      env:
+        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python security_scan/notify_telegram.py stage_success "Etapa 3 - Release completado (deploy automático iniciado)"

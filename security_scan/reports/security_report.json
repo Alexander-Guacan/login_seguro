@@ -1,0 +1,23 @@
+{
+    "frontend/index.html": {
+        "language": null,
+        "verdict": "SAFE",
+        "score": 0.0,
+        "ml_prob": 0.0,
+        "findings": []
+    },
+    "frontend/src/main.tsx": {
+        "language": "javascript",
+        "verdict": "SAFE",
+        "score": 0.0,
+        "ml_prob": 0.0,
+        "findings": []
+    },
+    "frontend/src/App.tsx": {
+        "language": "javascript",
+        "verdict": "SAFE",
+        "score": 0.0,
+        "ml_prob": 0.0,
+        "findings": []
+    }
+}
