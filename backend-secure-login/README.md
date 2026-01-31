@@ -268,10 +268,4 @@ Esto mostrará:
 - Los tokens revocados no se pueden reutilizar
 - Todos los eventos de seguridad se registran en la tabla `security_logs`
 
-## 🚧 Próximos Pasos (Fase 2)
 
-- [ ] Integración de WebAuthn para huella digital
-- [ ] Integración de Face-API.js para reconocimiento facial
-- [ ] Módulo de usuarios (CRUD)
-- [ ] Dashboards diferenciados por rol
-- [ ] Pruebas de seguridad con OWASP ZAP

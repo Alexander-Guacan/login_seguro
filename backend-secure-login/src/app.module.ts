@@ -8,6 +8,7 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { PrismaClientExceptionFilter } from './prisma/prisma-client-exception.filter';
+import { UsersModule } from './users/users.module';
 
 /**
  * Configuración:
@@ -29,6 +30,7 @@ import { PrismaClientExceptionFilter } from './prisma/prisma-client-exception.fi
     // Módulos de la aplicación
     PrismaModule,
     AuthModule,
+    UsersModule,
   ],
   providers: [
     // Guard para rate limiting (se aplica antes que los demás)

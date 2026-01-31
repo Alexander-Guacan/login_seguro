@@ -14,6 +14,7 @@ import { AuthResponseDto, UserResponseDto } from './dto/auth-response.dto';
 import { JwtPayload } from './strategies/jwt.strategy';
 import { User } from '@generated/prisma/client';
 import { JwtSignOptions } from '@nestjs/jwt';
+import { Role } from '../common/enums/role.enum';
 
 /**
  * Responsabilidades:
@@ -362,6 +363,6 @@ export class AuthService {
    */
   private sanitizeUser(user: User): UserResponseDto {
     const { password, ...sanitized } = user;
-    return sanitized as UserResponseDto;
+    return { ...sanitized, role: sanitized.role as Role } as UserResponseDto;
   }
 }
