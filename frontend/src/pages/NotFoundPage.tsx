@@ -1,14 +1,16 @@
 import { useNavigate } from "react-router";
+import { useAuth } from "../hooks/auth/useAuth";
 
 export function NotFoundPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const goBack = () => {
-    navigate(-1);
+    navigate(user ? "/dashboard" : "/", { replace: true });
   };
 
   return (
-    <main className="h-full flex flex-col justify-center items-center">
+    <main className="h-dvh flex flex-col justify-center items-center">
       <section className="max-w-[50%] text-center flex flex-col gap-y-6 items-center">
         <h2 className="text-6xl font-semibold">Página No Encontrada</h2>
         <p className="text-xl">

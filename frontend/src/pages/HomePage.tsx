@@ -2,7 +2,7 @@ import { Link } from "react-router";
 
 export function HomePage() {
   return (
-    <main className="h-full flex flex-col justify-evenly items-center">
+    <main className="h-full flex flex-col justify-evenly items-center gap-y-8">
       <section className="max-w-[50%] text-center flex flex-col gap-y-6 items-center">
         <h2 className="text-6xl font-semibold">
           Seguridad reforzada con autenticación biométrica.
@@ -17,7 +17,7 @@ export function HomePage() {
         </Link>
       </section>
       <section>
-        <ul className="flex justify-evenly gap-x-7">
+        <ul className="flex justify-evenly gap-7 flex-wrap">
           <li className="flex flex-col gap-y-4 p-4 text-center">
             <i className="text-3xl">🧬</i>
             <p className="font-semibold">Biometría como segundo factor</p>

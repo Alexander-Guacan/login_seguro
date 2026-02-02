@@ -8,10 +8,80 @@ body {
 
 @layer components {
   .link {
-    @apply px-4 py-2 inline-block;
+    @apply px-4 py-2 inline-block cursor-pointer;
   }
 
   .link--solid {
     @apply bg-blue-600 rounded-md text-white;
+  }
+
+  .nav-option {
+    @apply p-3 inline-block w-full rounded-md;
+    transition: all ease-in-out 350ms;
+
+    &:hover {
+      @apply bg-gray-600 cursor-pointer;
+    }
+  }
+
+  .nav-option--selected {
+    @apply bg-blue-600 rounded-md text-white font-semibold;
+  }
+
+  .button {
+    @apply bg-blue-500 rounded-md text-white px-4 py-2 inline-block cursor-pointer;
+  }
+
+  .button--danger {
+    @apply bg-red-500;
+  }
+
+  .form {
+    @apply flex flex-col gap-y-5;
+
+    label {
+      @apply font-semibold text-left cursor-pointer;
+    }
+
+    input {
+      @apply border-0 bg-white text-black rounded-md px-2 py-1;
+
+      &:focus {
+        @apply outline-2 outline-blue-500;
+      }
+    }
+
+    .field-group {
+      @apply flex flex-col gap-y-1;
+
+      &:has(input:required) > label::after {
+        content: '*';
+        @apply text-red-500;
+      }
+    }
+
+    .form-message {
+      @apply text-sm;
+    }
+
+    .form-message--error {
+      @apply text-red-500;
+    }
+  }
+
+  .alert {
+    @apply px-4 py-2 inline-block bg-blue-500 text-white rounded-md;
+  }
+
+  .alert--error {
+    @apply bg-red-500;
+  }
+
+  .alert--warning {
+    @apply bg-amber-500;
+  }
+
+  .alert--success {
+    @apply bg-green-500;
   }
 }

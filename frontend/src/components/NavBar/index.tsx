@@ -1,23 +1,31 @@
-import { Link } from "react-router";
+import { Link, NavLink } from "react-router";
 
 export function NavBar() {
   return (
-    <header className="">
-      <nav className="flex justify-between p-8">
+    <header className="p-8">
+      <nav className="flex justify-between">
         <Link to={"/"} className="inline-flex items-center">
           <i className="text-2xl not-italic">🔐</i>
           <h1 className="font-semibold text-2xl">SecLog</h1>
         </Link>
         <ul className="flex gap-x-4">
           <li>
-            <Link className="link" to={"/login"}>
+            <NavLink
+              className={({ isActive }) => `link ${isActive ? "hidden" : ""}`}
+              to={"/login"}
+            >
               Iniciar Sesión
-            </Link>
+            </NavLink>
           </li>
           <li>
-            <Link className="link link--solid" to={"/register"}>
+            <NavLink
+              className={({ isActive }) =>
+                `link link--solid ${isActive ? "hidden" : ""}`
+              }
+              to={"/register"}
+            >
               Registrarse
-            </Link>
+            </NavLink>
           </li>
         </ul>
       </nav>
