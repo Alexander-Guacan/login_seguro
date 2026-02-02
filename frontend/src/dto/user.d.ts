@@ -1,3 +1,9 @@
+export interface UserPreferencesResponseDTO {
+  theme?: string;
+  language?: string;
+  notifications?: boolean;
+}
+
 export interface UserResponseDTO {
   id: string;
   email: string;
@@ -6,7 +12,7 @@ export interface UserResponseDTO {
   role: string;
   isActive: boolean;
   createdAt: string;
-  preferences?: string;
+  preferences?: UserPreferencesResponseDTO;
 }
 
 export interface UserListResponseDTO {
@@ -15,4 +21,16 @@ export interface UserListResponseDTO {
   page: number;
   limit: number;
   totalPages: number;
+}
+
+export interface UserPreferencesRequestDTO {
+  theme?: string;
+  language?: string;
+  notifications?: boolean;
+}
+
+export interface UserProfileRequestDTO {
+  firstName?: string;
+  lastName?: string;
+  preferences?: UserPreferencesRequestDTO;
 }

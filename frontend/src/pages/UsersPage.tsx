@@ -17,7 +17,7 @@ export function UsersPage() {
   return (
     <main className="flex flex-col gap-6 h-full">
       <section className="px-6 py-4 rounded-md bg-sky-800">
-        <h1>Bienvenido de vuelta 👋</h1>
+        <h2>Bienvenido de vuelta 👋</h2>
       </section>
       <section className="table-container h-full">
         <header>

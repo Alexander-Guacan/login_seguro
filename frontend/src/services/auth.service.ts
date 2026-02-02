@@ -7,6 +7,9 @@ let refreshPromise: Promise<RefreshResponseDTO> | null = null;
 export const AuthService = {
   async login(dto: LoginRequestDTO) {
     try {
+      dto.email = dto.email.trim();
+      dto.password = dto.password.trim();
+
       const response = await AuthAPI.login(dto);
       const { user, refreshToken, accessToken } = response.data;
       return {

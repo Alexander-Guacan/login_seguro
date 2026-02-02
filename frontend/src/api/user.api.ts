@@ -1,4 +1,8 @@
-import type { UserListResponseDTO } from "../dto/user";
+import type {
+  UserResponseDTO,
+  UserListResponseDTO,
+  UserProfileRequestDTO,
+} from "../dto/user";
 import { api } from "./api";
 
 interface GetAllUsersApiQuery {
@@ -16,5 +20,13 @@ export const UserAPI = {
     return api.get<UserListResponseDTO>("/users", {
       params: query,
     });
+  },
+
+  getProfile() {
+    return api.get<UserResponseDTO>("/users/profile/me");
+  },
+
+  updateProfile(dto: UserProfileRequestDTO) {
+    return api.patch<UserResponseDTO>("/users/profile/me", dto);
   },
 };

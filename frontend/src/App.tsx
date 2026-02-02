@@ -4,13 +4,14 @@ import { HomePage } from "./pages/HomePage";
 import { PublicLayout } from "./layouts/PublicLayout";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { LoginPage } from "./pages/LoginPage";
-import { Dashboard } from "./pages/Dashboard";
+import { DashboardPage } from "./pages/DashboardPage";
 import { PrivateLayout } from "./layouts/PrivateLayout";
 import { PrivateRoute } from "./components/auth/PrivateRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { UserRole } from "./enums/userRole.enum";
 import { UsersPage } from "./pages/UsersPage";
+import { ProfilePage } from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -24,7 +25,8 @@ function App() {
 
       <Route element={<PrivateRoute />}>
         <Route element={<PrivateLayout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
 
           <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
             <Route path="/users" element={<UsersPage />} />

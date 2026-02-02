@@ -23,19 +23,13 @@ export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const onSubmit = async (
+  const handleSubmit = async (
     values: LoginRequestDTO,
     { setSubmitting, resetForm }: FormikHelpers<LoginRequestDTO>,
   ) => {
     setFormError(null);
 
-    const email = values.email.trim();
-    const password = values.password.trim();
-
-    const result = await login({
-      email,
-      password,
-    });
+    const result = await login(values);
 
     if (!result.success) {
       setFormError(result.error);
@@ -49,15 +43,17 @@ export function LoginPage() {
 
   return (
     <main className="content-center text-center w-full h-full">
-      <section className="inline-flex flex-col gap-y-12">
-        <h1 className="text-4xl font-semibold">Iniciar Sesión</h1>
+      <section className="form-container mx-auto max-w-95">
+        <header>
+          <h2>Iniciar Sesión</h2>
+        </header>
         <Formik
           initialValues={initValues}
           validationSchema={validationSchema}
-          onSubmit={onSubmit}
+          onSubmit={handleSubmit}
         >
           {({ isSubmitting }) => (
-            <Form className="form" noValidate>
+            <Form noValidate>
               <div className="field-group">
                 <label htmlFor="email">Correo electrónico</label>
                 <Field
@@ -68,7 +64,7 @@ export function LoginPage() {
                   autoFocus
                 />
                 <ErrorMessage
-                  className="form-message form-message--error"
+                  className="input-message input-message--error"
                   component="p"
                   name="email"
                 />
@@ -77,7 +73,7 @@ export function LoginPage() {
                 <label htmlFor="password">Contraseña</label>
                 <Field type="password" id="password" name="password" required />
                 <ErrorMessage
-                  className="form-message form-message--error"
+                  className="input-message input-message--error"
                   component="p"
                   name="password"
                 />

@@ -1,5 +1,6 @@
 import { getRoleName, type UserRole } from "../enums/userRole.enum";
 import { capitalize } from "../utils/text.util";
+import type { UserPreferences } from "./userPreferences";
 
 export class User {
   constructor(
@@ -10,7 +11,7 @@ export class User {
     public role: UserRole,
     public isActive: boolean,
     public createdAt: Date,
-    public preferences?: string,
+    public preferences?: UserPreferences,
   ) {}
 
   get fullName() {

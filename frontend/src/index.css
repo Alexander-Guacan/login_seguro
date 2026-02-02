@@ -29,7 +29,7 @@ body {
   }
 
   .nav-option--selected {
-    @apply bg-blue-600 rounded-md text-white font-semibold;
+    @apply bg-blue-400 rounded-md text-white font-semibold;
   }
 
   .button {
@@ -60,41 +60,69 @@ body {
     @apply bg-green-500;
   }
 
-  .form {
-    @apply flex flex-col gap-y-5;
-
-    label {
-      @apply font-semibold text-left cursor-pointer;
+  .form-container {
+    @apply flex flex-col gap-y-6 border border-gray-600 rounded-md p-6;
+    
+    header {
+      @apply font-bold text-2xl;
     }
+    
+    form {
+      @apply flex flex-col gap-y-6;
 
-    input {
-      @apply border-0 bg-white text-black rounded-md px-2 py-1;
+      .field-group {
+        @apply flex flex-col gap-y-2;
+        
+        label {
+          @apply font-semibold text-left cursor-pointer w-fit;
+        }
+        
+        input {
+          @apply border-0 bg-white text-black rounded-md px-2 py-1;
+          
+          &:focus {
+            @apply outline-2 outline-blue-500;
+          }
+        }
 
-      &:focus {
-        @apply outline-2 outline-blue-500;
+        select {
+          @apply bg-white text-black px-2 py-1 rounded-md;
+        }
+
+        &:has(select:required, input:required) > label::after {
+          content: '*';
+          @apply text-red-500;
+        }
       }
-    }
 
-    .field-group {
-      @apply flex flex-col gap-y-1;
-
-      &:has(input:required) > label::after {
-        content: '*';
+      .field-group--horizontal {
+        @apply flex-row gap-x-2;
+      }
+      
+      .input-message {
+        @apply text-sm;
+      }
+      
+      .input-message--error {
         @apply text-red-500;
       }
     }
-
-    .form-message {
-      @apply text-sm;
-    }
-
-    .form-message--error {
-      @apply text-red-500;
-    }
   }
 
-  .table-container {
-    @apply flex flex-col gap-y-8 p-8 border rounded-md border-gray-600 overflow-hidden;
+  .form-container--multicolumn {
+    form {
+      @apply grid grid-cols-2 gap-x-6;
+
+      > :last-child {
+        grid-column-start: 1;
+        grid-column-end: 3;
+        @apply text-center;
+      }
+    }
+  }
+    
+    .table-container {
+      @apply flex flex-col gap-y-8 p-8 border rounded-md border-gray-600 overflow-hidden;
     
     header {
       @apply text-xl font-semibold;
