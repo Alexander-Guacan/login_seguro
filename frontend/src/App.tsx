@@ -8,6 +8,9 @@ import { Dashboard } from "./pages/Dashboard";
 import { PrivateLayout } from "./layouts/PrivateLayout";
 import { PrivateRoute } from "./components/auth/PrivateRoute";
 import { PublicRoute } from "./components/auth/PublicRoute";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { UserRole } from "./enums/userRole.enum";
+import { UsersPage } from "./pages/UsersPage";
 
 function App() {
   return (
@@ -22,6 +25,10 @@ function App() {
       <Route element={<PrivateRoute />}>
         <Route element={<PrivateLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+
+          <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
+            <Route path="/users" element={<UsersPage />} />
+          </Route>
         </Route>
       </Route>
 

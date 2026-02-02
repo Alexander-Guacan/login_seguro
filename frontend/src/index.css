@@ -22,6 +22,10 @@ body {
     &:hover {
       @apply bg-gray-600 cursor-pointer;
     }
+
+    &:disabled {
+      @apply bg-transparent transition-none cursor-default;
+    }
   }
 
   .nav-option--selected {
@@ -30,10 +34,30 @@ body {
 
   .button {
     @apply bg-blue-500 rounded-md text-white px-4 py-2 inline-block cursor-pointer;
+
+    &:disabled {
+      @apply cursor-default bg-transparent border border-gray-600;
+    }
   }
 
   .button--danger {
     @apply bg-red-500;
+  }
+
+  .alert {
+    @apply px-4 py-2 inline-block bg-blue-500 text-white rounded-md;
+  }
+
+  .alert--error {
+    @apply bg-red-500;
+  }
+
+  .alert--warning {
+    @apply bg-amber-500;
+  }
+
+  .alert--success {
+    @apply bg-green-500;
   }
 
   .form {
@@ -69,19 +93,43 @@ body {
     }
   }
 
-  .alert {
-    @apply px-4 py-2 inline-block bg-blue-500 text-white rounded-md;
-  }
+  .table-container {
+    @apply flex flex-col gap-y-8 p-8 border rounded-md border-gray-600 overflow-hidden;
+    
+    header {
+      @apply text-xl font-semibold;
+    }
 
-  .alert--error {
-    @apply bg-red-500;
-  }
+    .table-wrapper {
+      @apply overflow-x-auto grow;
+    }
+    
+    table {
+      @apply w-full grow;
 
-  .alert--warning {
-    @apply bg-amber-500;
-  }
+      th {
+        @apply font-semibold;
+      }
 
-  .alert--success {
-    @apply bg-green-500;
+      th, td { 
+        @apply px-6 py-4 border-b border-b-gray-600 text-left text-base;
+      }
+      
+      tr:last-child > td {
+        border-bottom: none;
+      }
+      
+      :is(th, td):first-child {
+        @apply pl-0;
+      }
+    }
+
+    footer {
+      @apply flex justify-between items-center;
+
+      ul {
+        @apply flex gap-x-4 items-center;
+      }
+    }
   }
-}
+  }

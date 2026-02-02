@@ -4,9 +4,9 @@ export function Dashboard() {
   const { user } = useAuth();
 
   return (
-    <main>
-      <h1>
-        Hello {user?.firstName} {user?.lastName}
+    <main className="h-full text-center content-center">
+      <h1 className="text-4xl font-semibold">
+        Bienvenido, {user?.fullName} 👋
       </h1>
     </main>
   );
