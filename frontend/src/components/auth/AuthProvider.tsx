@@ -44,12 +44,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     const refreshToken = getStoragedRefreshToken();
 
-    removeAuthHeader();
-    setUser(null);
-    removeStoragedRefreshToken();
-
     if (refreshToken) {
-      await AuthService.logout(refreshToken);
+      await AuthService.logout(refreshToken).then(() => {
+        setUser(null);
+        removeStoragedRefreshToken();
+        removeAuthHeader();
+      });
     }
   };
 
