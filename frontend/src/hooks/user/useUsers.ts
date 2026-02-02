@@ -16,25 +16,24 @@ export function useUsers() {
   });
 
   const previousPage = () => {
-    if (query?.page && data?.totalPages && query.page >= data?.totalPages)
-      return;
+    if (!query.page || query.page <= 1) return;
 
     setQuery((previous) => {
       return {
         ...previous,
-        page: !previous?.page ? 1 : previous?.page - 1,
+        page: !previous.page ? 1 : previous?.page - 1,
       };
     });
   };
 
   const nextPage = () => {
-    // if (query?.page && data?.totalPages && query.page >= data?.totalPages)
-    //   return;
+    if (!query.page || !data?.totalPages || query.page >= data.totalPages)
+      return;
 
     setQuery((previous) => {
       return {
         ...previous,
-        page: !previous?.page ? 1 : previous?.page + 1,
+        page: !previous.page ? 1 : previous?.page + 1,
       };
     });
   };
