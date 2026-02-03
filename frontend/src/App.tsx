@@ -12,6 +12,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { UserRole } from "./enums/userRole.enum";
 import { UsersPage } from "./pages/UsersPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { PasswordPage } from "./pages/PasswordPage";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
         <Route element={<PrivateLayout />}>
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/password" element={<PasswordPage />} />
 
           <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
             <Route path="/users" element={<UsersPage />} />

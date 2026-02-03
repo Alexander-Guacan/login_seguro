@@ -1,4 +1,5 @@
 import { UserAPI } from "../api/user.api";
+import type { ChangePasswordRequestDTO } from "../dto/user";
 import type { UserRole } from "../enums/userRole.enum";
 import { UserMapper } from "../mappers/user.mapper";
 import { UserProfileMapper } from "../mappers/userProfile.mapper";
@@ -58,6 +59,17 @@ export const UserService = {
       return updatedUser;
     } catch {
       throw new Error("No se pudo actualizar el perfil. Intentalo más tarde.");
+    }
+  },
+
+  async changePassword(dto: ChangePasswordRequestDTO) {
+    try {
+      dto.newPassword = dto.newPassword.trim();
+      await UserAPI.changePassword(dto);
+    } catch {
+      throw new Error(
+        "La contraseña no pudo ser cambiada. Contraseña actual incorrecta.",
+      );
     }
   },
 };

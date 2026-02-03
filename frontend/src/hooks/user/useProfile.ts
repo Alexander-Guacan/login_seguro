@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { User } from "../../models/user";
 import { UserService } from "../../services/user.service";
 
-type HookResponse =
+type UpdateProfileResponse =
   | { success: true; message: string }
   | { success: false; error: string };
 
@@ -11,7 +11,7 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
 
   const updateProfile = useCallback(
-    async (user: User): Promise<HookResponse> => {
+    async (user: User): Promise<UpdateProfileResponse> => {
       try {
         setLoading(true);
 

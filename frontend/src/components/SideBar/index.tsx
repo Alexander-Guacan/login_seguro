@@ -26,6 +26,10 @@ export function SideBar() {
           options: [{ label: "Perfil", to: "/profile" }],
         },
         {
+          title: "Seguridad",
+          options: [{ label: "Contraseña", to: "/password" }],
+        },
+        {
           title: "Administración",
           options: [{ label: "Usuarios", to: "/users" }],
         },
@@ -34,6 +38,10 @@ export function SideBar() {
         {
           title: "Usuario",
           options: [{ label: "Perfil", to: "/profile" }],
+        },
+        {
+          title: "Seguridad",
+          options: [{ label: "Contraseña", to: "/password" }],
         },
       ],
     };

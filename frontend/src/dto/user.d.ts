@@ -34,3 +34,8 @@ export interface UserProfileRequestDTO {
   lastName?: string;
   preferences?: UserPreferencesRequestDTO;
 }
+
+export interface ChangePasswordRequestDTO {
+  currentPassword: string;
+  newPassword: string;
+}

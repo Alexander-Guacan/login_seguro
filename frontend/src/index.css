@@ -40,6 +40,10 @@ body {
     }
   }
 
+  .button--accept {
+    @apply bg-green-500;
+  }
+
   .button--danger {
     @apply bg-red-500;
   }
@@ -160,4 +164,22 @@ body {
       }
     }
   }
+
+  .modal-container[open] {
+    @apply fixed w-full h-full flex items-center justify-center text-white;
+    background-color: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(2px);
+
+    .modal {
+      @apply bg-sky-800 p-8 rounded-md flex flex-col gap-y-6;
+
+      header {
+        @apply text-2xl font-semibold;
+      }
+
+      footer {
+        @apply flex justify-evenly;
+      }
+    }
   }
+}
