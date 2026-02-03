@@ -13,6 +13,7 @@ import { UserRole } from "./enums/userRole.enum";
 import { UsersPage } from "./pages/UsersPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { PasswordPage } from "./pages/PasswordPage";
+import { UserPage } from "./pages/UserPage";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
 
           <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
             <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/:userId" element={<UserPage />} />
           </Route>
         </Route>
       </Route>

@@ -1,4 +1,6 @@
+import { Link } from "react-router";
 import { useUsers } from "../hooks/user/useUsers";
+import { useAuth } from "../hooks/auth/useAuth";
 
 export function UsersPage() {
   const {
@@ -9,6 +11,8 @@ export function UsersPage() {
     nextPage,
     previousPage,
   } = useUsers();
+
+  const { user: authUser } = useAuth();
 
   const prevButtonDisabled = !page || page <= 1;
 
@@ -32,6 +36,7 @@ export function UsersPage() {
                 <th>Email</th>
                 <th>Rol</th>
                 <th>Fecha de creación</th>
+                <th>&nbsp;</th>
               </tr>
             </thead>
             <tbody>
@@ -45,6 +50,22 @@ export function UsersPage() {
                     <time dateTime={user.createdAt.toISOString()}>
                       {user.createdAt.toLocaleDateString("es-EC")}
                     </time>
+                  </td>
+                  <td>
+                    <ul>
+                      <li>
+                        <Link
+                          className="link link--solid"
+                          to={
+                            user.id === authUser?.id
+                              ? "/profile"
+                              : `/users/${user.id}`
+                          }
+                        >
+                          Editar
+                        </Link>
+                      </li>
+                    </ul>
                   </td>
                 </tr>
               ))}

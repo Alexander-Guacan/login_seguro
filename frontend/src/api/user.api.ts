@@ -3,6 +3,7 @@ import type {
   UserListResponseDTO,
   UserProfileRequestDTO,
   ChangePasswordRequestDTO,
+  UserRequestDTO,
 } from "../dto/user";
 import { api } from "./api";
 
@@ -33,5 +34,13 @@ export const UserAPI = {
 
   changePassword(dto: ChangePasswordRequestDTO) {
     return api.patch("/users/profile/change-password", dto);
+  },
+
+  getById(id: string) {
+    return api.get<UserResponseDTO>(`/users/${id}`);
+  },
+
+  update(id: string, dto: UserRequestDTO) {
+    return api.patch<UserResponseDTO>(`/users/${id}`, dto);
   },
 };

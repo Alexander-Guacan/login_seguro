@@ -97,6 +97,10 @@ body {
           content: '*';
           @apply text-red-500;
         }
+
+        &:has(input[type="checkbox"]) {
+          @apply flex-row gap-x-4 items-center;
+        }
       }
 
       .field-group--horizontal {

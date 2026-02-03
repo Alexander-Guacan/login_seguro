@@ -13,7 +13,7 @@ import * as yup from "yup";
 const initialValues = {
   oldPassword: "",
   newPassword: "",
-  newPasswordRepeated: "",
+  passwordVerification: "",
 };
 
 type FormValues = typeof initialValues;
@@ -28,11 +28,11 @@ const validationSchema = yup.object({
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
       {
         message:
-          "La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&)",
+          "Debe contener mayúscula, minúscula, número y carácter especial.",
       },
     )
     .required("Este campo es obligatorio"),
-  newPasswordRepeated: yup
+  passwordVerification: yup
     .string()
     .equals([yup.ref("newPassword")], "Las contraseñas no coinciden")
     .required("Este campo es obligatorio"),
@@ -145,17 +145,17 @@ export function PasswordPage() {
                 />
               </div>
               <div className="field-group">
-                <label htmlFor="newPasswordRepeated">Repetir contraseña</label>
+                <label htmlFor="passwordVerification">Repetir contraseña</label>
                 <Field
                   type="password"
-                  id="newPasswordRepeated"
-                  name="newPasswordRepeated"
+                  id="passwordVerification"
+                  name="passwordVerification"
                   required
                 />
                 <ErrorMessage
                   className="input-message input-message--error"
                   component="p"
-                  name="newPasswordRepeated"
+                  name="passwordVerification"
                 />
               </div>
               <div className="flex flex-col gap-y-4">

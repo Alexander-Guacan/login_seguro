@@ -72,4 +72,28 @@ export const UserService = {
       );
     }
   },
+
+  async getById(id: string): Promise<User> {
+    try {
+      const response = await UserAPI.getById(id);
+      const dto = response.data;
+      return UserMapper.toEntity(dto);
+    } catch {
+      throw new Error(
+        "Usuario no encontrado. Verfique que las credenciales son correctas.",
+      );
+    }
+  },
+
+  async update(id: string, user: User, newPassword?: string): Promise<User> {
+    try {
+      const dto = UserMapper.toDTO(user, newPassword);
+      const response = await UserAPI.update(id, dto);
+      return UserMapper.toEntity(response.data);
+    } catch {
+      throw new Error(
+        "El usuario no pudo ser actualizado. Intentelo más tarde.",
+      );
+    }
+  },
 };

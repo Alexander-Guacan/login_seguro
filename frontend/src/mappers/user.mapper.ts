@@ -1,4 +1,4 @@
-import type { UserResponseDTO } from "../dto/user";
+import type { UserRequestDTO, UserResponseDTO } from "../dto/user";
 import { isUserRole } from "../enums/userRole.enum";
 import { User } from "../models/user";
 import { UserPreferencesMapper } from "./userPreferences.mapper";
@@ -21,5 +21,21 @@ export const UserMapper = {
         ? UserPreferencesMapper.toEntity(dto.preferences)
         : undefined,
     );
+  },
+
+  toDTO(user: User, newPassword?: string): UserRequestDTO {
+    const dto: UserRequestDTO = {
+      email: user.email,
+      firstName: user.firstName,
+      isActive: user.isActive,
+      lastName: user.lastName,
+      role: user.role,
+    };
+
+    if (newPassword) {
+      dto.password = newPassword;
+    }
+
+    return dto;
   },
 };
