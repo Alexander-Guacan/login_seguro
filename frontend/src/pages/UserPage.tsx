@@ -5,6 +5,7 @@ import { getRoleName, UserRole } from "../enums/userRole.enum";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { User } from "../models/user";
+import { PageHeader } from "../components/PageSection/PageHeader";
 
 type FormValues = {
   firstName: string;
@@ -45,7 +46,8 @@ const validationSchema = yup.object({
 });
 
 export function UserPage() {
-  const { userId } = useParams();
+  const params = useParams();
+  const { userId } = params;
   const { user, update } = useUser({ id: userId });
   const [formError, setFormError] = useState<string | null>(null);
   const [formMessage, setFormMessage] = useState<string | null>(null);
@@ -103,9 +105,7 @@ export function UserPage() {
 
   return (
     <main className="flex flex-col gap-6 h-full">
-      <section className="px-6 py-4 rounded-md bg-sky-800">
-        <h2>Bienvenido de vuelta 👋</h2>
-      </section>
+      <PageHeader title="Perfil de usuario" />
       <section className="form-container form-container--multicolumn mx-auto w-[50%]">
         <header>
           <h3>Administrar usuario</h3>

@@ -1,6 +1,7 @@
 import { Link } from "react-router";
 import { useUsers } from "../hooks/user/useUsers";
 import { useAuth } from "../hooks/auth/useAuth";
+import { PageHeader } from "../components/PageSection/PageHeader";
 
 export function UsersPage() {
   const {
@@ -34,9 +35,7 @@ export function UsersPage() {
 
   return (
     <main className="flex flex-col gap-6 h-full">
-      <section className="px-6 py-4 rounded-md bg-sky-800">
-        <h2>Bienvenido de vuelta 👋</h2>
-      </section>
+      <PageHeader title="Usuarios" />
       <section className="table-container h-full">
         <header className="flex flex-col gap-y-4">
           <h2 className="table-container__title">Usuarios</h2>

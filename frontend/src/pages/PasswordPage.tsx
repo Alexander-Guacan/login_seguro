@@ -9,6 +9,8 @@ import {
 import { usePassword } from "../hooks/user/usePassword";
 import { useRef, useState } from "react";
 import * as yup from "yup";
+import { ConfirmDialog } from "../components/Dialog/ConfirmDialog";
+import { PageHeader } from "../components/PageSection/PageHeader";
 
 const initialValues = {
   oldPassword: "",
@@ -101,9 +103,7 @@ export function PasswordPage() {
 
   return (
     <main className="flex flex-col gap-6 h-full relative">
-      <section className="px-6 py-4 rounded-md bg-sky-800">
-        <h2>Bienvenido de vuelta 👋</h2>
-      </section>
+      <PageHeader title="Contraseña" />
       <section className="form-container w-[50%] mx-auto">
         <header>
           <h3>Cambiar Contraseña</h3>
@@ -177,30 +177,13 @@ export function PasswordPage() {
         </Formik>
       </section>
 
-      <dialog className="modal-container" open={modalOpen}>
-        <section className="modal">
-          <header>
-            <h3>Cambiar contraseña</h3>
-          </header>
-          <p>¿Seguro que deseas cambiar tu contraseña?</p>
-          <footer>
-            <button
-              className="button button--accept"
-              type="button"
-              onClick={submitForm}
-            >
-              Sí
-            </button>
-            <button
-              className="button button--danger"
-              type="button"
-              onClick={cancelSubmit}
-            >
-              No
-            </button>
-          </footer>
-        </section>
-      </dialog>
+      <ConfirmDialog
+        open={modalOpen}
+        title={"Cambiar contraseña"}
+        question={"¿Está seguro que desea cambiar su contraseña?"}
+        onAccept={submitForm}
+        onDecline={cancelSubmit}
+      />
     </main>
   );
 }

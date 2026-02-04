@@ -8,7 +8,7 @@ body {
 
 @layer components {
   button:hover {
-    cursor: pointer;
+    @apply cursor-pointer;
   }
 
   label {
@@ -49,7 +49,11 @@ body {
   }
 
   .nav-option--selected {
-    @apply bg-blue-400 rounded-md text-white font-semibold;
+    @apply bg-blue-400 rounded-md text-white font-semibold transition-none cursor-default pointer-events-none;
+
+    &:hover {
+      @apply bg-blue-400 cursor-default;
+    }
   }
 
   .button {
@@ -177,21 +181,4 @@ body {
     }
   }
 
-  .modal-container[open] {
-    @apply fixed w-full h-full flex items-center justify-center text-white;
-    background-color: rgba(0, 0, 0, 0);
-    backdrop-filter: blur(2px);
-
-    .modal {
-      @apply bg-sky-800 p-8 rounded-md flex flex-col gap-y-6;
-
-      header {
-        @apply text-2xl font-semibold;
-      }
-
-      footer {
-        @apply flex justify-evenly;
-      }
-    }
-  }
 }

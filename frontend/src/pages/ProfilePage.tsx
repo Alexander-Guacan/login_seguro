@@ -4,6 +4,7 @@ import type { User } from "../models/user";
 import { getRoleName, UserRole } from "../enums/userRole.enum";
 import * as yup from "yup";
 import { useState } from "react";
+import { PageHeader } from "../components/PageSection/PageHeader";
 
 const validationSchema = yup.object({
   firstName: yup
@@ -47,9 +48,7 @@ export function ProfilePage() {
 
   return (
     <main className="flex flex-col gap-6 h-full">
-      <section className="px-6 py-4 rounded-md bg-sky-800">
-        <h2>Bienvenido de vuelta 👋</h2>
-      </section>
+      <PageHeader title="Perfil" />
       <section className="form-container form-container--multicolumn w-fit">
         <header>
           <h3>Perfil</h3>
