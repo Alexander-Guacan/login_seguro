@@ -1,16 +1,12 @@
 import { ErrorMessage, Field, Form, Formik, type FormikHelpers } from "formik";
-import { PageHeader } from "../components/PageSection/PageHeader";
-import { getRoleName, UserRole } from "../enums/userRole.enum";
-import * as yup from "yup";
 import { useState } from "react";
-import { useUser } from "../hooks/user/useUser";
-import { User } from "../models/user";
+import * as yup from "yup";
+import { useAuth } from "../hooks/auth/useAuth";
 
 interface FormValues {
   firstName: string;
   lastName: string;
   email: string;
-  role: UserRole;
   password: string;
   passwordVerification: string;
 }
@@ -21,7 +17,6 @@ const initialValues: FormValues = {
   email: "",
   password: "",
   passwordVerification: "",
-  role: UserRole.CLIENT,
 };
 
 const validationSchema = yup.object({
@@ -52,26 +47,21 @@ const validationSchema = yup.object({
     .equals([yup.ref("password")], "Las contraseñas no coinciden"),
 });
 
-export function CreateUserPage() {
+export function RegisterPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [formMessage, setFormMessage] = useState<string | null>(null);
-  const { create } = useUser();
+  const { register } = useAuth();
 
   const handleSubmit = async (
     values: FormValues,
     { setSubmitting, resetForm }: FormikHelpers<FormValues>,
   ) => {
-    const { email, firstName, lastName, password, role } = values;
-
-    const user = new User({
-      email: email,
-      firstName: firstName,
-      lastName: lastName,
-      isActive: true,
-      role,
+    const result = await register({
+      email: values.email,
+      firstName: values.firstName,
+      lastName: values.lastName,
+      password: values.password,
     });
-
-    const result = await create(user, password);
 
     if (!result.success) {
       setFormError(result.error);
@@ -88,11 +78,10 @@ export function CreateUserPage() {
   };
 
   return (
-    <main className="flex flex-col gap-y-6">
-      <PageHeader title="Crear usuario" />
-      <section className="form-container form-container--multicolumn">
+    <main className="content-center text-center w-full h-full">
+      <section className="form-container form-container--multicolumn mx-auto max-w-150">
         <header>
-          <h2 className="form-container__title">Usuario</h2>
+          <h1>Registro de usuario</h1>
         </header>
         <Formik
           initialValues={initialValues}
@@ -129,22 +118,6 @@ export function CreateUserPage() {
                 />
               </div>
               <div className="field-group">
-                <label htmlFor="role">Rol</label>
-                <Field as="select" id="role" name="role">
-                  <option value={UserRole.ADMIN}>
-                    {getRoleName(UserRole.ADMIN)}
-                  </option>
-                  <option value={UserRole.CLIENT}>
-                    {getRoleName(UserRole.CLIENT)}
-                  </option>
-                </Field>
-                <ErrorMessage
-                  className="input-message input-message--error"
-                  component="p"
-                  name="role"
-                />
-              </div>
-              <div className="field-group">
                 <label htmlFor="password">Contraseña</label>
                 <Field type="password" id="password" name="password" required />
                 <ErrorMessage
@@ -154,7 +127,9 @@ export function CreateUserPage() {
                 />
               </div>
               <div className="field-group">
-                <label htmlFor="passwordVerification">Repetir contraseña</label>
+                <label htmlFor="passwordVerification">
+                  Verificar contraseña
+                </label>
                 <Field
                   type="password"
                   id="passwordVerification"
@@ -173,7 +148,7 @@ export function CreateUserPage() {
                   type="submit"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Actualizando..." : "Actualizar"}
+                  {isSubmitting ? "Registrando..." : "Registrarse"}
                 </button>
                 {formError && <p className="alert alert--error">{formError}</p>}
                 {formMessage && (

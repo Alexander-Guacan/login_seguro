@@ -45,7 +45,7 @@ export function LoginPage() {
     <main className="content-center text-center w-full h-full">
       <section className="form-container mx-auto max-w-95">
         <header>
-          <h2>Iniciar Sesión</h2>
+          <h1>Iniciar Sesión</h1>
         </header>
         <Formik
           initialValues={initValues}

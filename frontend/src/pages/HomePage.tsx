@@ -4,9 +4,9 @@ export function HomePage() {
   return (
     <main className="h-full flex flex-col justify-evenly items-center gap-y-8">
       <section className="max-w-[50%] text-center flex flex-col gap-y-6 items-center">
-        <h2 className="text-6xl font-semibold">
+        <h1 className="text-6xl font-semibold">
           Seguridad reforzada con autenticación biométrica.
-        </h2>
+        </h1>
         <p className="text-xl">
           Plataforma de gestión de usuarios con inicio de sesión seguro que
           combina correo, contraseña y verificación biométrica. Añade una capa

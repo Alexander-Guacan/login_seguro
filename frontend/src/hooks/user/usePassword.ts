@@ -1,20 +1,11 @@
 import type { ChangePasswordRequestDTO } from "../../dto/user";
 import { UserService } from "../../services/user.service";
-
-type ChangePasswordResponse =
-  | {
-      success: true;
-      message: string;
-    }
-  | {
-      success: false;
-      error: string;
-    };
+import type { OperationResult } from "../../types";
 
 export function usePassword() {
   const changePassword = async (
     dto: ChangePasswordRequestDTO,
-  ): Promise<ChangePasswordResponse> => {
+  ): Promise<OperationResult> => {
     try {
       await UserService.changePassword(dto);
 

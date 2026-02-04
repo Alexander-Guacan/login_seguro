@@ -3,13 +3,13 @@ import { AuthContext } from "../../context/authContext";
 import type { User } from "../../models/user";
 import { AuthService } from "../../services/auth.service";
 import type { LoginRequestDTO } from "../../dto/auth";
-import type { LoginResult } from "../../types/auth";
 import { removeAuthHeader, setAuthHeader } from "../../api/api";
 import {
   getStoragedRefreshToken,
   removeStoragedRefreshToken,
   storageRefreshToken,
 } from "../../storage/auth";
+import type { OperationResult } from "../../types";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => getStoragedRefreshToken() !== null,
   );
 
-  const login = async (values: LoginRequestDTO): Promise<LoginResult> => {
+  const login = async (values: LoginRequestDTO): Promise<OperationResult> => {
     try {
       const { user, accessToken, refreshToken } =
         await AuthService.login(values);

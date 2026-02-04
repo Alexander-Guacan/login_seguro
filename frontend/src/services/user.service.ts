@@ -25,7 +25,7 @@ export const UserService = {
         limit: query?.limit,
         page: query?.page,
         role: query?.role,
-        search: query?.search,
+        search: query?.search?.trim().toLocaleLowerCase(),
         sortBy: query?.sortBy,
         sortOrder: query?.sortOrder,
       });
@@ -98,6 +98,12 @@ export const UserService = {
   async update(id: string, user: User, newPassword?: string): Promise<User> {
     try {
       const dto = UserMapper.toUpdateDTO(user, newPassword);
+      dto.email = dto.email?.trim();
+      dto.firstName = dto.firstName
+        ? capitalize(dto.firstName.trim())
+        : undefined;
+      dto.lastName = dto.lastName ? capitalize(dto.lastName.trim()) : undefined;
+
       const response = await UserAPI.update(id, dto);
       return UserMapper.toEntity(response.data);
     } catch {
@@ -110,6 +116,10 @@ export const UserService = {
   async create(user: User, password: string): Promise<User> {
     try {
       const dto = UserMapper.toDTO(user, password);
+      dto.email = dto.email.trim();
+      dto.firstName = capitalize(dto.firstName.trim());
+      dto.lastName = capitalize(dto.lastName.trim());
+
       const response = await UserAPI.create(dto);
       return UserMapper.toEntity(response.data);
     } catch {

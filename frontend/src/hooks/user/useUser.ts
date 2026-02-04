@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "../../models/user";
 import { UserService } from "../../services/user.service";
-
-type RequestStatusResponse =
-  | {
-      success: true;
-      message: string;
-    }
-  | {
-      success: false;
-      error: string;
-    };
+import type { OperationResult } from "../../types";
 
 export function useUser({ id }: { id?: string } = {}) {
   const [data, setData] = useState<User | null>(null);
@@ -20,7 +11,7 @@ export function useUser({ id }: { id?: string } = {}) {
   const create = async (
     user: User,
     password: string,
-  ): Promise<RequestStatusResponse> => {
+  ): Promise<OperationResult> => {
     try {
       const newUser = await UserService.create(user, password);
       setData(newUser);
@@ -46,7 +37,7 @@ export function useUser({ id }: { id?: string } = {}) {
     id: string,
     user: User,
     newPassword?: string,
-  ): Promise<RequestStatusResponse> => {
+  ): Promise<OperationResult> => {
     try {
       const updatedUser = await UserService.update(id, user, newPassword);
       setData(updatedUser);

@@ -1,10 +1,24 @@
 import { AuthAPI } from "../api/auth.api";
-import type { LoginRequestDTO, RefreshResponseDTO } from "../dto/auth";
+import type {
+  LoginRequestDTO,
+  RefreshResponseDTO,
+  RegisterRequestDTO,
+} from "../dto/auth";
 import { UserMapper } from "../mappers/user.mapper";
 
 let refreshPromise: Promise<RefreshResponseDTO> | null = null;
 
 export const AuthService = {
+  async register(dto: RegisterRequestDTO) {
+    try {
+      await AuthAPI.register(dto);
+    } catch {
+      throw new Error(
+        "No se pudo registrar al usuario, el correo usado ya esta registrado.",
+      );
+    }
+  },
+
   async login(dto: LoginRequestDTO) {
     try {
       dto.email = dto.email.trim();
@@ -12,6 +26,7 @@ export const AuthService = {
 
       const response = await AuthAPI.login(dto);
       const { user, refreshToken, accessToken } = response.data;
+
       return {
         user: UserMapper.toEntity(user),
         accessToken,

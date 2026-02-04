@@ -23,7 +23,7 @@ export function UsersPage() {
     const target = event.currentTarget;
     const form = Object.fromEntries(new FormData(target));
     const { search: searchInput } = form;
-    const searchText = searchInput.toString().trim().toLocaleLowerCase();
+    const searchText = searchInput.toString();
     search(searchText);
   };
 

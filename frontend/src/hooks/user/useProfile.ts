@@ -1,17 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import type { User } from "../../models/user";
 import { UserService } from "../../services/user.service";
-
-type UpdateProfileResponse =
-  | { success: true; message: string }
-  | { success: false; error: string };
+import type { OperationResult } from "../../types";
 
 export function useProfile() {
   const [data, setData] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const updateProfile = useCallback(
-    async (user: User): Promise<UpdateProfileResponse> => {
+    async (user: User): Promise<OperationResult> => {
       try {
         setLoading(true);
 

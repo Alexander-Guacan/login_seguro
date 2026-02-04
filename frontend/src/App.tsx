@@ -15,6 +15,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { PasswordPage } from "./pages/PasswordPage";
 import { UserPage } from "./pages/UserPage";
 import { CreateUserPage } from "./pages/CreateUserPage";
+import { RegisterPage } from "./pages/RegisterPage";
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route index element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
         </Route>
       </Route>
 

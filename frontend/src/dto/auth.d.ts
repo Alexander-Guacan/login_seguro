@@ -1,5 +1,12 @@
 import type { UserResponseDTO } from "./user";
 
+export interface RegisterRequestDTO {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
 export interface LoginRequestDTO {
   email: string;
   password: string;

@@ -6,7 +6,7 @@ export function NavBar() {
       <nav className="flex justify-between">
         <Link to={"/"} className="inline-flex items-center">
           <i className="text-2xl not-italic">🔐</i>
-          <h1 className="font-semibold text-2xl">SecLog</h1>
+          <h2 className="font-semibold text-2xl">SecLog</h2>
         </Link>
         <ul className="flex gap-x-4">
           <li>
