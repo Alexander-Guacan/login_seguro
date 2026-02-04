@@ -20,8 +20,18 @@ export interface GetAllUsersQuery {
 export const UserService = {
   async getAll(query?: GetAllUsersQuery): Promise<PaginatedData<User>> {
     try {
-      const response = await UserAPI.getAll(query);
+      const response = await UserAPI.getAll({
+        isActive: query?.isActive,
+        limit: query?.limit,
+        page: query?.page,
+        role: query?.role,
+        search: query?.search,
+        sortBy: query?.sortBy,
+        sortOrder: query?.sortOrder,
+      });
+
       const dto = response.data;
+
       return {
         data: dto.users.map(UserMapper.toEntity),
         limit: dto.limit,

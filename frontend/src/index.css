@@ -7,6 +7,26 @@ body {
 }
 
 @layer components {
+  button:hover {
+    cursor: pointer;
+  }
+
+  label {
+    @apply font-semibold text-left cursor-pointer w-fit;
+  }
+  
+  input {
+    @apply border-0 bg-white text-black rounded-md px-2 py-1;
+    
+    &:focus {
+      @apply outline-2 outline-blue-500;
+    }
+  }
+
+  select {
+    @apply bg-white text-black px-2 py-1 rounded-md;
+  }
+
   .link {
     @apply px-4 py-2 inline-block cursor-pointer;
   }
@@ -76,22 +96,6 @@ body {
 
       .field-group {
         @apply flex flex-col gap-y-2;
-        
-        label {
-          @apply font-semibold text-left cursor-pointer w-fit;
-        }
-        
-        input {
-          @apply border-0 bg-white text-black rounded-md px-2 py-1;
-          
-          &:focus {
-            @apply outline-2 outline-blue-500;
-          }
-        }
-
-        select {
-          @apply bg-white text-black px-2 py-1 rounded-md;
-        }
 
         &:has(select:required, input:required) > label::after {
           content: '*';
@@ -129,10 +133,10 @@ body {
     }
   }
     
-    .table-container {
-      @apply flex flex-col gap-y-8 p-8 border rounded-md border-gray-600 overflow-hidden;
+  .table-container {
+    @apply flex flex-col gap-y-8 p-8 border rounded-md border-gray-600 overflow-hidden;
     
-    header {
+    .table-container__title {
       @apply text-xl font-semibold;
     }
 
@@ -157,6 +161,10 @@ body {
       
       :is(th, td):first-child {
         @apply pl-0;
+      }
+
+      tfoot td {
+        @apply text-center font-semibold;
       }
     }
 

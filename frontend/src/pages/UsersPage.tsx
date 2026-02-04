@@ -8,11 +8,25 @@ export function UsersPage() {
     page,
     totalPages,
     loading,
+    total,
     nextPage,
     previousPage,
+    search,
+    resetSearch,
   } = useUsers();
 
   const { user: authUser } = useAuth();
+
+  const handleSearch = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const target = event.currentTarget;
+    const form = Object.fromEntries(new FormData(target));
+    const { search: searchInput } = form;
+    const searchText = searchInput.toString().trim().toLocaleLowerCase();
+    search(searchText);
+  };
+
+  const hasResults = users && users.length > 0;
 
   const prevButtonDisabled = !page || page <= 1;
 
@@ -24,8 +38,27 @@ export function UsersPage() {
         <h2>Bienvenido de vuelta 👋</h2>
       </section>
       <section className="table-container h-full">
-        <header>
-          <h2>Usuarios</h2>
+        <header className="flex flex-col gap-y-4">
+          <h2 className="table-container__title">Usuarios</h2>
+          <article className="flex justify-between items-center">
+            <Link className="link link--solid" to={"/user/create"}>
+              Crear usuario
+            </Link>
+            <form
+              className="flex gap-x-4 items-center"
+              onSubmit={handleSearch}
+              onReset={resetSearch}
+            >
+              <input
+                type="search"
+                name="search"
+                id="search"
+                placeholder="John Doe"
+              />
+              <button type="submit">🔎</button>
+              <button type="reset">⟳</button>
+            </form>
+          </article>
         </header>
         <div className="table-wrapper">
           <table>
@@ -36,7 +69,7 @@ export function UsersPage() {
                 <th>Email</th>
                 <th>Rol</th>
                 <th>Fecha de creación</th>
-                <th>&nbsp;</th>
+                {hasResults && <th>&nbsp;</th>}
               </tr>
             </thead>
             <tbody>
@@ -51,6 +84,7 @@ export function UsersPage() {
                       {user.createdAt.toLocaleDateString("es-EC")}
                     </time>
                   </td>
+
                   <td>
                     <ul>
                       <li>
@@ -72,16 +106,18 @@ export function UsersPage() {
             </tbody>
             {!loading && !users?.length && (
               <tfoot>
-                <td colSpan={5}>
-                  <p>No hay usuarios</p>
-                </td>
+                <tr>
+                  <td colSpan={5}>
+                    <p>No hay usuarios</p>
+                  </td>
+                </tr>
               </tfoot>
             )}
           </table>
         </div>
         <footer>
           <p>
-            Página {page} de {totalPages}
+            {users?.length} de {total} resultados
           </p>
           <ul>
             <li>

@@ -1,28 +1,27 @@
-import { useEffect, useState } from "react";
-import {
-  type GetAllUsersQuery,
-  UserService,
-} from "../../services/user.service";
+import { useEffect, useReducer, useState } from "react";
+import { UserService } from "../../services/user.service";
 import { User } from "../../models/user";
 import type { PaginatedData } from "../../types";
+import {
+  createInitialState,
+  usersQueryReducer,
+} from "../../reducers/usersQueryReducer";
 
 export function useUsers() {
   const [data, setData] = useState<PaginatedData<User> | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [query, setQuery] = useState<GetAllUsersQuery>({
-    page: 1,
-    limit: 10,
-  });
+  const [query, queryDispatch] = useReducer(
+    usersQueryReducer,
+    null,
+    createInitialState,
+  );
 
   const previousPage = () => {
     if (!query.page || query.page <= 1) return;
 
-    setQuery((previous) => {
-      return {
-        ...previous,
-        page: !previous.page ? 1 : previous?.page - 1,
-      };
+    queryDispatch({
+      type: "previousPage",
     });
   };
 
@@ -30,12 +29,22 @@ export function useUsers() {
     if (!query.page || !data?.totalPages || query.page >= data.totalPages)
       return;
 
-    setQuery((previous) => {
-      return {
-        ...previous,
-        page: !previous.page ? 1 : previous?.page + 1,
-      };
+    queryDispatch({
+      type: "nextPage",
     });
+  };
+
+  const search = (input: string) => {
+    if (!input) return;
+
+    queryDispatch({
+      type: "search",
+      payload: input,
+    });
+  };
+
+  const resetSearch = () => {
+    queryDispatch({ type: "reset" });
   };
 
   useEffect(() => {
@@ -51,5 +60,7 @@ export function useUsers() {
     loading,
     nextPage,
     previousPage,
+    search,
+    resetSearch,
   };
 }
