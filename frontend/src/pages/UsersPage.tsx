@@ -40,7 +40,7 @@ export function UsersPage() {
         <header className="flex flex-col gap-y-4">
           <h2 className="table-container__title">Usuarios</h2>
           <article className="flex justify-between items-center">
-            <Link className="link link--solid" to={"/user/create"}>
+            <Link className="link link--solid" to={"/users/create"}>
               Crear usuario
             </Link>
             <form
@@ -63,18 +63,20 @@ export function UsersPage() {
           <table>
             <thead>
               <tr>
-                <th>Activo</th>
                 <th>Nombre completo</th>
                 <th>Email</th>
                 <th>Rol</th>
                 <th>Fecha de creación</th>
+                <th>Activo</th>
                 {hasResults && <th>&nbsp;</th>}
               </tr>
             </thead>
             <tbody>
               {users?.map((user) => (
-                <tr key={user.id}>
-                  <td>{user.isActive ? "✅" : "❌"}</td>
+                <tr
+                  key={user.id}
+                  className={user.isActive ? "" : "text-gray-400"}
+                >
                   <td>{user.fullName}</td>
                   <td>{user.email}</td>
                   <td>{user.roleName}</td>
@@ -83,7 +85,7 @@ export function UsersPage() {
                       {user.createdAt.toLocaleDateString("es-EC")}
                     </time>
                   </td>
-
+                  <td>{user.isActive ? "✅" : "❌"}</td>
                   <td>
                     <ul>
                       <li>

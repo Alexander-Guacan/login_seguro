@@ -14,6 +14,7 @@ import { UsersPage } from "./pages/UsersPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { PasswordPage } from "./pages/PasswordPage";
 import { UserPage } from "./pages/UserPage";
+import { CreateUserPage } from "./pages/CreateUserPage";
 
 function App() {
   return (
@@ -21,19 +22,22 @@ function App() {
       <Route element={<PublicRoute />}>
         <Route element={<PublicLayout />}>
           <Route index element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="login" element={<LoginPage />} />
         </Route>
       </Route>
 
       <Route element={<PrivateRoute />}>
         <Route element={<PrivateLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/password" element={<PasswordPage />} />
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="password" element={<PasswordPage />} />
 
           <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
-            <Route path="/users" element={<UsersPage />} />
-            <Route path="/users/:userId" element={<UserPage />} />
+            <Route path="users">
+              <Route index element={<UsersPage />} />
+              <Route path=":userId" element={<UserPage />} />
+              <Route path="create" element={<CreateUserPage />} />
+            </Route>
           </Route>
         </Route>
       </Route>

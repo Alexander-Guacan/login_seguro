@@ -75,16 +75,16 @@ export function UserPage() {
       return;
     }
 
-    const updatedInfo = new User(
-      user.id,
-      values.email,
-      values.firstName,
-      values.lastName,
-      values.role,
-      values.isActive,
-      user.createdAt,
-      user.preferences,
-    );
+    const updatedInfo = new User({
+      id: user.id,
+      email: values.email,
+      firstName: values.firstName,
+      lastName: values.lastName,
+      role: values.role,
+      isActive: values.isActive,
+      createdAt: user.createdAt,
+      preferences: user.preferences,
+    });
 
     const result = await update(user.id, updatedInfo, values.password);
 

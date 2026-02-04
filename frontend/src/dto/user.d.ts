@@ -40,11 +40,20 @@ export interface ChangePasswordRequestDTO {
   newPassword: string;
 }
 
-export interface UserRequestDTO {
+export interface UserUpdateRequestDTO {
   email?: string;
   password?: string;
   firstName?: string;
   lastName?: string;
   role?: string;
   isActive?: boolean;
+}
+
+export interface UserRequestDTO {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: strign;
+  role: string;
+  isActive: boolean;
 }

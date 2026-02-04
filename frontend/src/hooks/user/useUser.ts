@@ -12,10 +12,35 @@ type RequestStatusResponse =
       error: string;
     };
 
-export function useUser({ id }: { id?: string }) {
+export function useUser({ id }: { id?: string } = {}) {
   const [data, setData] = useState<User | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const create = async (
+    user: User,
+    password: string,
+  ): Promise<RequestStatusResponse> => {
+    try {
+      const newUser = await UserService.create(user, password);
+      setData(newUser);
+
+      return {
+        success: true,
+        message: "Usuario creado correctamente.",
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Ocurrio un error inesperado al tratar de crear el usuario.";
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  };
 
   const update = async (
     id: string,
@@ -56,6 +81,7 @@ export function useUser({ id }: { id?: string }) {
     user: data,
     error,
     loading,
+    create,
     update,
   };
 }

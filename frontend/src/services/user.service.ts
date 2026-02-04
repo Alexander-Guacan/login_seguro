@@ -97,12 +97,24 @@ export const UserService = {
 
   async update(id: string, user: User, newPassword?: string): Promise<User> {
     try {
-      const dto = UserMapper.toDTO(user, newPassword);
+      const dto = UserMapper.toUpdateDTO(user, newPassword);
       const response = await UserAPI.update(id, dto);
       return UserMapper.toEntity(response.data);
     } catch {
       throw new Error(
         "El usuario no pudo ser actualizado. Intentelo más tarde.",
+      );
+    }
+  },
+
+  async create(user: User, password: string): Promise<User> {
+    try {
+      const dto = UserMapper.toDTO(user, password);
+      const response = await UserAPI.create(dto);
+      return UserMapper.toEntity(response.data);
+    } catch {
+      throw new Error(
+        "El usuario no pudo ser registrado: el correo ya esta registrado o la contraseña no es válida.",
       );
     }
   },

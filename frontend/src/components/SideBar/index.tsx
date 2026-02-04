@@ -52,11 +52,14 @@ export function SideBar() {
   return (
     <header className="h-full px-6 py-5 min-w-60 border-r-gray-600 border-r">
       <nav className="h-full flex flex-col gap-y-6">
-        <Link to={"/dashboard"} className="inline-flex items-center w-fit">
-          <i className="text-2xl not-italic">🔐</i>
-          <h2 className="font-semibold text-2xl">SecLog</h2>
-        </Link>
-        <div className="grow flex flex-col justify-between">
+        <section>
+          <Link to={"/dashboard"} className="inline-flex items-center w-fit">
+            <i className="text-2xl not-italic">🔐</i>
+            <h2 className="font-semibold text-2xl">SecLog</h2>
+          </Link>
+          <p className="text-gray-400 text-sm">{user?.fullName}</p>
+        </section>
+        <article className="grow flex flex-col justify-between">
           <div className="flex flex-col gap-y-6">
             {optionsByRole.map(({ title, options }) => (
               <section
@@ -88,7 +91,7 @@ export function SideBar() {
           >
             Cerrar Sesión
           </button>
-        </div>
+        </article>
       </nav>
     </header>
   );
