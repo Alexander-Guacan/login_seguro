@@ -9,6 +9,7 @@ export class UserResponseDto {
   role: Role;
   isActive: boolean;
   createdAt: Date;
+  updatedAt: Date;
   preferences?: any;
 }
 

@@ -32,8 +32,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relaciones
-  refreshTokens RefreshToken[]
-  securityLogs  SecurityLog[]
+  refreshTokens     RefreshToken[]
+  securityLogs      SecurityLog[]
+  authenticators    Authenticator[]  // Credenciales WebAuthn
+  faceDescriptors   FaceDescriptor[] // Descriptores faciales
 
   // Preferencias del usuario (para cliente)
   preferences Json? // Almacena preferencias no críticas como tema, idioma, etc.
@@ -74,4 +76,39 @@ model SecurityLog {
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+}
+
+// Credenciales WebAuthn (para huella, Face ID, etc.)
+model Authenticator {
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  credentialID         String   @unique // ID de la credencial WebAuthn
+  credentialPublicKey  Bytes    // Clave pública (no contiene datos biométricos)
+  counter              BigInt   // Contador de uso para prevenir replay attacks
+  credentialDeviceType String   // "singleDevice" o "multiDevice"
+  credentialBackedUp   Boolean  // Si la credencial está respaldada en la nube
+  transports           String[] // ["usb", "nfc", "ble", "internal"]
+  deviceName           String?  // Nombre descriptivo del dispositivo
+  createdAt            DateTime @default(now())
+  lastUsedAt           DateTime @default(now())
+
+  @@map("authenticators")
+  @@index([userId])
+  @@index([credentialID])
+}
+
+// Descriptores faciales (Face-API.js)
+model FaceDescriptor {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  descriptor  String   // Descriptor facial encriptado (array de números)
+  deviceInfo  String?  // Información del dispositivo donde se registró
+  label       String?  // Etiqueta descriptiva (ej: "Mi laptop", "Oficina")
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime @default(now())
+
+  @@map("face_descriptors")
+  @@index([userId])
 }

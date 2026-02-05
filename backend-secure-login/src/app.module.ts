@@ -9,6 +9,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { PrismaClientExceptionFilter } from './prisma/prisma-client-exception.filter';
 import { UsersModule } from './users/users.module';
+import { BiometricModule } from './biometric/biometric.module';
 
 /**
  * Configuración:
@@ -31,6 +32,7 @@ import { UsersModule } from './users/users.module';
     PrismaModule,
     AuthModule,
     UsersModule,
+    BiometricModule
   ],
   providers: [
     // Guard para rate limiting (se aplica antes que los demás)

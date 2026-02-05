@@ -76,7 +76,7 @@ export class AuthService {
           password: hashedPassword,
           firstName,
           lastName,
-          role: role || 'CLIENT',
+          role: role || Role.CLIENT,
           preferences: {
             theme: 'light',
             language: 'es',
@@ -363,6 +363,61 @@ export class AuthService {
    */
   private sanitizeUser(user: User): UserResponseDto {
     const { password, ...sanitized } = user;
-    return { ...sanitized, role: sanitized.role as Role } as UserResponseDto;
+    return sanitized as UserResponseDto;
   }
+
+
+/**
+   * Login biométrico - genera tokens después de verificación biométrica.
+   * 
+   * @param userId - ID del usuario verificado
+   * @param method - Método biométrico usado (webauthn o facial)
+   * @param ipAddress - IP del cliente
+   * @param userAgent - User agent
+   * @returns Usuario con tokens
+   */
+  async biometricLogin(
+    userId: string,
+    method: 'webauthn' | 'facial',
+    ipAddress: string,
+    userAgent: string,
+  ): Promise<AuthResponseDto> {
+    // Buscar usuario
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Usuario inactivo');
+    }
+
+    // Registrar login exitoso
+    await this.prisma.securityLog.create({
+      data: {
+        userId: user.id,
+        action: `BIOMETRIC_LOGIN_SUCCESS_${method.toUpperCase()}`,
+        ipAddress,
+        userAgent,
+        metadata: {
+          email: user.email,
+          method,
+        },
+      },
+    });
+
+    this.logger.log(`Login biométrico exitoso (${method}): ${user.email}`);
+
+    // Generar tokens
+    const tokens = await this.generateTokens(user, ipAddress, userAgent);
+
+    return new AuthResponseDto({
+      user: this.sanitizeUser(user),
+      ...tokens,
+    });
+  }
+
 }

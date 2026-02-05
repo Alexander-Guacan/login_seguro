@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Playground - Pruebas WebAuthn</title>
+    <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@10.0.0/dist/bundle/index.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .card h3 {
+            color: #555;
+            margin: 20px 0 10px;
+            font-size: 1.1rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 5px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+        
+        .output {
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .output.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .output.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .status.connected {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .icon {
+            font-size: 1.5rem;
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin: 15px 0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .credentials-list {
+            margin-top: 10px;
+        }
+        
+        .credential-item {
+            background: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .credential-item button {
+            width: auto;
+            padding: 6px 12px;
+            font-size: 12px;
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Biometric Playground</h1>
+            <p>Prueba de autenticación WebAuthn y facial sin frontend completo</p>
+        </div>
+
+        <div class="grid">
+            <!-- Card 1: Configuración -->
+            <div class="card">
+                <h2>⚙️ Configuración</h2>
+                
+                <div class="form-group">
+                    <label>API Base URL</label>
+                    <input type="text" id="apiUrl" value="http://localhost:3001/api">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" value="ariel@gmail.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Password (para login tradicional)</label>
+                    <input type="password" id="password" value="Admin123!">
+                </div>
+                
+                <button onclick="login()">🔑 Login Tradicional</button>
+                
+                <div class="info-box">
+                    <strong>Token:</strong> <span id="tokenStatus" class="status disconnected">No autenticado</span>
+                    <div id="tokenDisplay" style="font-size: 11px; margin-top: 5px; word-break: break-all;"></div>
+                </div>
+                
+                <button onclick="checkBiometricStatus()" class="btn-secondary">📊 Ver Estado Biométrico</button>
+                
+                <div id="configOutput" class="output" style="display: none;"></div>
+            </div>
+
+            <!-- Card 2: WebAuthn Registration -->
+            <div class="card">
+                <h2>🆔 WebAuthn - Registro</h2>
+                
+                <div class="info-box">
+                    Registra tu huella digital, Face ID o Windows Hello
+                </div>
+                
+                <div class="form-group">
+                    <label>Nombre del dispositivo</label>
+                    <input type="text" id="deviceName" value="Mi laptop">
+                </div>
+                
+                <button onclick="registerWebAuthn()">📱 Registrar Credencial WebAuthn</button>
+                
+                <h3>Credenciales Registradas</h3>
+                <button onclick="listWebAuthnCredentials()" class="btn-secondary">🔄 Actualizar Lista</button>
+                <div id="credentialsList" class="credentials-list"></div>
+                
+                <div id="registerOutput" class="output" style="display: none;"></div>
+            </div>
+
+            <!-- Card 3: WebAuthn Authentication -->
+            <div class="card">
+                <h2>🔓 WebAuthn - Autenticación</h2>
+                
+                <div class="info-box">
+                    Inicia sesión usando tu biometría registrada
+                </div>
+                
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="authEmail" value="client@secure-login.com">
+                </div>
+                
+                <button onclick="authenticateWebAuthn()">🔐 Login con WebAuthn</button>
+                
+                <div id="authOutput" class="output" style="display: none;"></div>
+            </div>
+
+            <!-- Card 4: Facial Recognition (Simulado) -->
+            <div class="card">
+                <h2>😊 Reconocimiento Facial</h2>
+                
+                <div class="info-box">
+                    <strong>Nota:</strong> Esta es una simulación. El reconocimiento facial real requiere face-api.js y cámara.
+                </div>
+                
+                <h3>Registrar Descriptor</h3>
+                <div class="form-group">
+                    <label>Label</label>
+                    <input type="text" id="faceLabel" value="Mi rostro">
+                </div>
+                
+                <button onclick="registerFaceSimulation()">📸 Simular Registro Facial</button>
+                
+                <h3>Verificar Rostro</h3>
+                <button onclick="verifyFaceSimulation()" class="btn-secondary">✅ Simular Verificación Facial</button>
+                
+                <h3>Descriptores Registrados</h3>
+                <button onclick="listFaceDescriptors()" class="btn-secondary">🔄 Actualizar Lista</button>
+                <div id="descriptorsList" class="credentials-list"></div>
+                
+                <div id="faceOutput" class="output" style="display: none;"></div>
+            </div>
+        </div>
+
+        <!-- Card 5: Logs -->
+        <div class="card">
+            <h2>📋 Logs de Actividad</h2>
+            <button onclick="clearLogs()" class="btn-danger">🗑️ Limpiar Logs</button>
+            <div id="activityLogs" class="output"></div>
+        </div>
+    </div>
+
+    <script>
+        const { startRegistration, startAuthentication } = SimpleWebAuthnBrowser;
+        
+        let accessToken = '';
+        
+        function log(message, type = 'info') {
+            const logs = document.getElementById('activityLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#721c24' : type === 'success' ? '#155724' : '#004085';
+            logs.innerHTML = `<div style="color: ${color};">[${timestamp}] ${message}</div>` + logs.innerHTML;
+        }
+        
+        function clearLogs() {
+            document.getElementById('activityLogs').innerHTML = '';
+        }
+        
+        function showOutput(elementId, content, isError = false) {
+            const output = document.getElementById(elementId);
+            output.style.display = 'block';
+            output.className = isError ? 'output error' : 'output success';
+            output.textContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+        }
+        
+        async function login() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                log('Intentando login tradicional...', 'info');
+                
+                const response = await fetch(`${apiUrl}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.message || 'Login fallido');
+                }
+                
+                accessToken = data.accessToken;
+                document.getElementById('tokenStatus').className = 'status connected';
+                document.getElementById('tokenStatus').textContent = 'Autenticado ✓';
+                document.getElementById('tokenDisplay').textContent = accessToken.substring(0, 50) + '...';
+                
+                showOutput('configOutput', data);
+                log('✅ Login exitoso', 'success');
+            } catch (error) {
+                showOutput('configOutput', error.message, true);
+                log('❌ Error en login: ' + error.message, 'error');
+            }
+        }
+        
+        async function checkBiometricStatus() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            if (!accessToken) {
+                alert('Primero debes hacer login tradicional');
+                return;
+            }
+            
+            try {
+                log('Consultando estado biométrico...', 'info');
+                
+                const response = await fetch(`${apiUrl}/biometric/status`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                const data = await response.json();
+                showOutput('configOutput', data);
+                log('✅ Estado biométrico obtenido', 'success');
+            } catch (error) {
+                showOutput('configOutput', error.message, true);
+                log('❌ Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function registerWebAuthn() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const deviceName = document.getElementById('deviceName').value;
+            
+            if (!accessToken) {
+                alert('Primero debes hacer login tradicional');
+                return;
+            }
+            
+            try {
+                log('🔄 Generando opciones de registro...', 'info');
+                
+                // Paso 1: Obtener opciones de registro
+                const optionsResponse = await fetch(`${apiUrl}/biometric/webauthn/registration/options`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const options = await optionsResponse.json();
+                log('📋 Opciones recibidas, solicitando biometría al dispositivo...', 'info');
+                
+                // Paso 2: Solicitar credencial al navegador
+                let credential;
+                try {
+                    credential = await startRegistration(options);
+                    log('✅ Credencial obtenida del dispositivo', 'success');
+                } catch (error) {
+                    if (error.name === 'NotAllowedError') {
+                        throw new Error('Usuario canceló o el dispositivo no tiene biometría');
+                    }
+                    throw error;
+                }
+                
+                // Paso 3: Verificar registro en el backend
+                log('🔄 Verificando credencial en el servidor...', 'info');
+                const verifyResponse = await fetch(`${apiUrl}/biometric/webauthn/registration/verify`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ credential, deviceName })
+                });
+                
+                const result = await verifyResponse.json();
+                
+                if (!verifyResponse.ok) {
+                    throw new Error(result.message || 'Verificación fallida');
+                }
+                
+                showOutput('registerOutput', result);
+                log('🎉 ¡Credencial WebAuthn registrada exitosamente!', 'success');
+                
+                // Actualizar lista
+                await listWebAuthnCredentials();
+            } catch (error) {
+                showOutput('registerOutput', error.message, true);
+                log('❌ Error en registro: ' + error.message, 'error');
+            }
+        }
+        
+        async function authenticateWebAuthn() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('authEmail').value;
+            
+            try {
+                log('🔄 Generando opciones de autenticación...', 'info');
+                
+                // Paso 1: Obtener opciones de autenticación
+                const optionsResponse = await fetch(`${apiUrl}/biometric/webauthn/authentication/options`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const options = await optionsResponse.json();
+                log('📋 Opciones recibidas, solicitando biometría...', 'info');
+                
+                // Paso 2: Solicitar autenticación al navegador
+                let credential;
+                try {
+                    credential = await startAuthentication(options);
+                    log('✅ Autenticación biométrica exitosa', 'success');
+                } catch (error) {
+                    if (error.name === 'NotAllowedError') {
+                        throw new Error('Usuario canceló la autenticación');
+                    }
+                    throw error;
+                }
+                
+                // Paso 3: Verificar en el backend
+                log('🔄 Verificando autenticación en el servidor...', 'info');
+                const verifyResponse = await fetch(`${apiUrl}/biometric/webauthn/authentication/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, credential })
+                });
+                
+                const result = await verifyResponse.json();
+                
+                if (!verifyResponse.ok) {
+                    throw new Error(result.message || 'Autenticación fallida');
+                }
+                
+                // Paso 4: Obtener tokens JWT
+                log('🔄 Obteniendo tokens JWT...', 'info');
+                const tokenResponse = await fetch(`${apiUrl}/auth/login-biometric`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId: result.userId, method: 'webauthn' })
+                });
+                
+                const tokenData = await tokenResponse.json();
+                
+                if (!tokenResponse.ok) {
+                    throw new Error(tokenData.message || 'Error obteniendo tokens');
+                }
+                
+                // Actualizar token
+                accessToken = tokenData.accessToken;
+                document.getElementById('tokenStatus').className = 'status connected';
+                document.getElementById('tokenStatus').textContent = 'Autenticado ✓ (WebAuthn)';
+                document.getElementById('tokenDisplay').textContent = accessToken.substring(0, 50) + '...';
+                
+                showOutput('authOutput', tokenData);
+                log('🎉 ¡Login WebAuthn exitoso!', 'success');
+            } catch (error) {
+                showOutput('authOutput', error.message, true);
+                log('❌ Error en autenticación: ' + error.message, 'error');
+            }
+        }
+        
+        async function listWebAuthnCredentials() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            if (!accessToken) {
+                alert('Primero debes hacer login');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${apiUrl}/biometric/webauthn/credentials`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                const credentials = await response.json();
+                const list = document.getElementById('credentialsList');
+                
+                if (credentials.length === 0) {
+                    list.innerHTML = '<p style="color: #999; text-align: center;">No hay credenciales registradas</p>';
+                } else {
+                    list.innerHTML = credentials.map(cred => `
+                        <div class="credential-item">
+                            <div>
+                                <strong>${cred.deviceName || 'Sin nombre'}</strong><br>
+                                <small>Creado: ${new Date(cred.createdAt).toLocaleDateString()}</small>
+                            </div>
+                            <button onclick="deleteWebAuthnCredential('${cred.id}')">🗑️ Eliminar</button>
+                        </div>
+                    `).join('');
+                }
+                
+                log('✅ Lista de credenciales actualizada', 'success');
+            } catch (error) {
+                log('❌ Error listando credenciales: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteWebAuthnCredential(id) {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            if (!confirm('¿Eliminar esta credencial?')) return;
+            
+            try {
+                await fetch(`${apiUrl}/biometric/webauthn/credentials/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                log('✅ Credencial eliminada', 'success');
+                await listWebAuthnCredentials();
+            } catch (error) {
+                log('❌ Error eliminando credencial: ' + error.message, 'error');
+            }
+        }
+        
+        // Funciones de facial (simuladas)
+        function generateRandomDescriptor() {
+            return Array.from({ length: 128 }, () => Math.random() * 2 - 1);
+        }
+        
+        async function registerFaceSimulation() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const label = document.getElementById('faceLabel').value;
+            
+            if (!accessToken) {
+                alert('Primero debes hacer login');
+                return;
+            }
+            
+            try {
+                log('📸 Generando descriptor facial simulado...', 'info');
+                const descriptor = generateRandomDescriptor();
+                
+                const response = await fetch(`${apiUrl}/biometric/facial/register`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        descriptor, 
+                        label,
+                        deviceInfo: 'Simulación desde Playground'
+                    })
+                });
+                
+                const result = await response.json();
+                showOutput('faceOutput', result);
+                log('✅ Descriptor facial registrado', 'success');
+                
+                await listFaceDescriptors();
+            } catch (error) {
+                showOutput('faceOutput', error.message, true);
+                log('❌ Error: ' + error.message, 'error');
+            }
+        }
+        
+        async function verifyFaceSimulation() {
+            alert('La verificación facial requiere face-api.js y cámara. Esta función está disponible en el frontend completo.');
+        }
+        
+        async function listFaceDescriptors() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            if (!accessToken) return;
+            
+            try {
+                const response = await fetch(`${apiUrl}/biometric/facial/descriptors`, {
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                const descriptors = await response.json();
+                const list = document.getElementById('descriptorsList');
+                
+                if (descriptors.length === 0) {
+                    list.innerHTML = '<p style="color: #999; text-align: center;">No hay descriptores registrados</p>';
+                } else {
+                    list.innerHTML = descriptors.map(desc => `
+                        <div class="credential-item">
+                            <div>
+                                <strong>${desc.label || 'Sin etiqueta'}</strong><br>
+                                <small>Creado: ${new Date(desc.createdAt).toLocaleDateString()}</small>
+                            </div>
+                            <button onclick="deleteFaceDescriptor('${desc.id}')">🗑️ Eliminar</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                log('❌ Error listando descriptores: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteFaceDescriptor(id) {
+            const apiUrl = document.getElementById('apiUrl').value;
+            
+            if (!confirm('¿Eliminar este descriptor?')) return;
+            
+            try {
+                await fetch(`${apiUrl}/biometric/facial/descriptors/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                });
+                
+                log('✅ Descriptor eliminado', 'success');
+                await listFaceDescriptors();
+            } catch (error) {
+                log('❌ Error eliminando descriptor: ' + error.message, 'error');
+            }
+        }
+        
+        // Log inicial
+        log('🚀 Biometric Playground cargado - Listo para probar', 'success');
+    </script>
+</body>
+</html>

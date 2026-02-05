@@ -150,4 +150,33 @@ export class AuthController {
     const { password, ...userWithoutPassword } = user;
     return userWithoutPassword;
   }
+
+  
+  /**
+   * POST /auth/login-biometric
+   * 
+   * Genera tokens JWT después de una autenticación biométrica exitosa.
+   * Se llama después de verificar WebAuthn o facial.
+   * 
+   * @param body - userId y método usado
+   * @param req - Request de Express
+   * @returns Tokens JWT
+   */
+  @Public()
+  @Post('login-biometric')
+  @HttpCode(HttpStatus.OK)
+  async loginBiometric(
+    @Body() body: { userId: string; method: 'webauthn' | 'facial' },
+    @Req() req: Request,
+  ) {
+    const ipAddress = req.ip || 'unknown';
+    const userAgent = req.get('user-agent') || 'unknown';
+
+    return this.authService.biometricLogin(
+      body.userId,
+      body.method,
+      ipAddress,
+      userAgent,
+    );
+  }
 }

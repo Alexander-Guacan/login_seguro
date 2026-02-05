@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from '../../prisma/prisma.service';
-import { User } from '@generated/prisma/client';
+import { User, Role } from '@generated/prisma/client';
 
 /**
  * Payload del JWT
@@ -10,7 +10,7 @@ import { User } from '@generated/prisma/client';
 export interface JwtPayload {
   sub: string;      // User ID
   email: string;
-  role: string;
+  role: Role;       // Tipo enum Role
   iat?: number;     // Issued at
   exp?: number;     // Expiration
 }
