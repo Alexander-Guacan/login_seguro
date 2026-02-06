@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  Req,
 } from '@nestjs/common';
 import { BiometricService } from './biometric.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -20,6 +21,7 @@ import {
   VerifyAuthenticationDto,
 } from './dto/webauthn.dto';
 import { RegisterFaceDto, VerifyFaceDto } from './dto/facial.dto';
+import { AuthService } from 'src/auth';
 
 /**
  * Endpoints WebAuthn:
@@ -42,7 +44,10 @@ import { RegisterFaceDto, VerifyFaceDto } from './dto/facial.dto';
 @Controller('biometric')
 @UseGuards(JwtAuthGuard)
 export class BiometricController {
-  constructor(private readonly biometricService: BiometricService) {}
+  constructor(
+    private readonly biometricService: BiometricService,
+    private readonly authService: AuthService
+  ) {}
 
   // ========== WEBAUTHN ==========
 
@@ -107,20 +112,25 @@ export class BiometricController {
   @Public()
   @Post('webauthn/authentication/verify')
   @HttpCode(HttpStatus.OK)
-  async verifyAuthentication(@Body() verifyDto: VerifyAuthenticationDto) {
+  async verifyAuthentication(
+    @Body() verifyDto: VerifyAuthenticationDto,
+    @Req() req: any, ) {
     // Verificar autenticación
     const user = await this.biometricService.verifyAuthentication(
       verifyDto.email,
       verifyDto.credential,
     );
 
-    // Retornar usuario para que el frontend sepa que fue exitoso
-    // El frontend deberá llamar a /auth/login-biometric para obtener tokens
-    return {
-      success: true,
-      userId: user.id,
-      email: user.email,
-    };
+     // 2. Generar tokens JWT
+    const ipAddress = req.ip || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    return this.authService.biometricLogin(
+      user.id,
+      'webauthn',
+      ipAddress,
+      userAgent,
+    );
   }
 
   /**

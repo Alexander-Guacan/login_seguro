@@ -223,7 +223,8 @@
                 
                 <div class="form-group">
                     <label>API Base URL</label>
-                    <input type="text" id="apiUrl" value="http://localhost:3001/api">
+                    <!-- <input type="text" id="apiUrl" value="http://localhost:3001/api"> -->
+                     <input type="text" id="apiUrl" value="https://6c56-200-50-232-234.ngrok-free.app/api">
                 </div>
                 
                 <div class="form-group">
@@ -280,7 +281,7 @@
                 
                 <div class="form-group">
                     <label>Email</label>
-                    <input type="email" id="authEmail" value="client@secure-login.com">
+                    <input type="email" id="authEmail" value="ariel@gmail.com">
                 </div>
                 
                 <button onclick="authenticateWebAuthn()">🔐 Login con WebAuthn</button>
@@ -468,73 +469,134 @@
         }
         
         async function authenticateWebAuthn() {
+            const email = document.getElementById('email').value;
             const apiUrl = document.getElementById('apiUrl').value;
-            const email = document.getElementById('authEmail').value;
+            
+            if (!email) {
+                showOutput('authOutput', 'Por favor ingresa el email', true);
+                return;
+            }
             
             try {
-                log('🔄 Generando opciones de autenticación...', 'info');
+                log('🔄 Solicitando opciones de autenticación...', 'info');
                 
-                // Paso 1: Obtener opciones de autenticación
+                // 1. Obtener opciones de autenticación
                 const optionsResponse = await fetch(`${apiUrl}/biometric/webauthn/authentication/options`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({ email })
                 });
                 
-                const options = await optionsResponse.json();
-                log('📋 Opciones recibidas, solicitando biometría...', 'info');
+                const optionsData = await optionsResponse.json();
                 
-                // Paso 2: Solicitar autenticación al navegador
-                let credential;
-                try {
-                    credential = await startAuthentication(options);
-                    log('✅ Autenticación biométrica exitosa', 'success');
-                } catch (error) {
-                    if (error.name === 'NotAllowedError') {
-                        throw new Error('Usuario canceló la autenticación');
-                    }
-                    throw error;
+                // ✅ NUEVO: Log detallado de las opciones
+                console.log('📋 Opciones COMPLETAS recibidas:', JSON.stringify(optionsData, null, 2));
+                log(`📋 Opciones recibidas - RP ID: ${optionsData.rpId}`, 'info');
+                log(`📋 Challenge: ${optionsData.challenge.substring(0, 20)}...`, 'info');
+                
+                // Verificar si hay credenciales disponibles
+                if (!optionsData.allowCredentials || optionsData.allowCredentials.length === 0) {
+                    showOutput('authOutput', 
+                        '⚠️ No hay credenciales registradas para este usuario.\n\n' +
+                        'Para usar WebAuthn debes:\n' +
+                        '1. Hacer login tradicional primero\n' +
+                        '2. Registrar una credencial WebAuthn\n' +
+                        '3. Luego podrás hacer login con WebAuthn', 
+                        true
+                    );
+                    return;
                 }
                 
-                // Paso 3: Verificar en el backend
-                log('🔄 Verificando autenticación en el servidor...', 'info');
+                // ✅ NUEVO: Log de las credenciales disponibles
+                log(`✅ Credenciales disponibles: ${optionsData.allowCredentials.length}`, 'success');
+                optionsData.allowCredentials.forEach((cred, idx) => {
+                    console.log(`📱 Credencial ${idx + 1}:`, {
+                        id: cred.id.substring(0, 30) + '...',
+                        type: cred.type,
+                        transports: cred.transports
+                    });
+                    log(`📱 Credencial ${idx + 1}: ${cred.id.substring(0, 20)}... [${cred.transports.join(', ')}]`, 'info');
+                });
+                
+                log(`📱 Iniciando autenticación con el dispositivo...`, 'info');
+                log(`⚠️ Si el navegador no responde, verifica que la credencial fue registrada con el MISMO RP ID`, 'info');
+                
+                // 2. Iniciar autenticación
+                let credential;
+                try {
+                    credential = await SimpleWebAuthnBrowser.startAuthentication(optionsData);
+                    log(`✅ Credencial obtenida del dispositivo!`, 'success');
+                } catch (authError) {
+                    console.error('❌ Error en startAuthentication:', authError);
+                    
+                    if (authError.name === 'NotAllowedError') {
+                        showOutput('authOutput', 
+                            '❌ Operación cancelada o rechazada por el navegador\n\n' +
+                            '🔍 DIAGNÓSTICO:\n' +
+                            'El navegador no reconoce esta credencial.\n\n' +
+                            '✅ SOLUCIÓN:\n' +
+                            '1. Elimina TODAS las credenciales antiguas\n' +
+                            '2. Haz login tradicional\n' +
+                            '3. Registra una NUEVA credencial WebAuthn\n' +
+                            '4. Intenta el login nuevamente\n\n' +
+                            `📋 RP ID actual: ${optionsData.rpId}\n` +
+                            `📋 Origin actual: https://${optionsData.rpId}`, 
+                            true
+                        );
+                    } else if (authError.name === 'InvalidStateError') {
+                        showOutput('authOutput', 
+                            '⚠️ Esta credencial fue registrada en otro dispositivo\n\n' +
+                            'Debes registrar una nueva credencial en ESTE dispositivo.', 
+                            true
+                        );
+                    } else {
+                        showOutput('authOutput', `❌ Error: ${authError.name} - ${authError.message}`, true);
+                    }
+                    return; // ✅ Detener aquí si falla
+                }
+                
+                log(`🔄 Verificando en el servidor...`, 'info');
+                
+                // 3. Verificar en backend
                 const verifyResponse = await fetch(`${apiUrl}/biometric/webauthn/authentication/verify`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
                     body: JSON.stringify({ email, credential })
                 });
                 
-                const result = await verifyResponse.json();
+                const verifyData = await verifyResponse.json();
                 
-                if (!verifyResponse.ok) {
-                    throw new Error(result.message || 'Autenticación fallida');
+                if (verifyResponse.ok) {
+                    accessToken = verifyData.accessToken;
+                    localStorage.setItem('authToken', verifyData.accessToken);
+                    localStorage.setItem('refreshToken', verifyData.refreshToken);
+                    
+                    document.getElementById('tokenStatus').textContent = '✅ Autenticado con WebAuthn';
+                    document.getElementById('tokenStatus').className = 'status connected';
+                    document.getElementById('tokenDisplay').textContent = verifyData.accessToken.substring(0, 50) + '...';
+                    
+                    showOutput('authOutput', 
+                        `✅ Login exitoso con WebAuthn!\n\n` +
+                        `Usuario: ${verifyData.user.email}\n` +
+                        `Nombre: ${verifyData.user.firstName} ${verifyData.user.lastName}`, 
+                        false
+                    );
+                    log('🎉 Login con WebAuthn completado exitosamente', 'success');
+                } else {
+                    showOutput('authOutput', `❌ Error: ${verifyData.message}`, true);
+                    log(`❌ Verificación fallida: ${verifyData.message}`, 'error');
                 }
                 
-                // Paso 4: Obtener tokens JWT
-                log('🔄 Obteniendo tokens JWT...', 'info');
-                const tokenResponse = await fetch(`${apiUrl}/auth/login-biometric`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: result.userId, method: 'webauthn' })
-                });
-                
-                const tokenData = await tokenResponse.json();
-                
-                if (!tokenResponse.ok) {
-                    throw new Error(tokenData.message || 'Error obteniendo tokens');
-                }
-                
-                // Actualizar token
-                accessToken = tokenData.accessToken;
-                document.getElementById('tokenStatus').className = 'status connected';
-                document.getElementById('tokenStatus').textContent = 'Autenticado ✓ (WebAuthn)';
-                document.getElementById('tokenDisplay').textContent = accessToken.substring(0, 50) + '...';
-                
-                showOutput('authOutput', tokenData);
-                log('🎉 ¡Login WebAuthn exitoso!', 'success');
             } catch (error) {
-                showOutput('authOutput', error.message, true);
-                log('❌ Error en autenticación: ' + error.message, 'error');
+                console.error('💥 Error completo:', error);
+                log(`❌ Error capturado: ${error.name || 'Unknown'} - ${error.message}`, 'error');
+                showOutput('authOutput', `❌ Error inesperado: ${error.message || error}`, true);
             }
         }
         
