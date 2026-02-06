@@ -47,9 +47,7 @@ export class BiometricService {
   // Secreto para encriptar descriptores faciales
   private readonly encryptionKey = process.env.FACE_ENCRYPTION_KEY || 'change-this-in-production-minimum-32-chars';
 
-  constructor(private prisma: PrismaService) {
-    this.logger.log(`🔧 WebAuthn Config - RP_ID: ${this.rpID}, ORIGIN: ${this.origin}`);
-  }
+  constructor(private prisma: PrismaService) {}
 
   // ========== WEBAUTHN ==========
 
@@ -72,9 +70,9 @@ export class BiometricService {
     }
 
 
-    // ✅ Obtener credenciales existentes para excluirlas
+    // Obtener credenciales existentes para excluirlas
     const userAuthenticators = user.authenticators.map((auth) => ({
-      id: auth.credentialID, // ✅ Usar directamente el string base64
+      id: auth.credentialID, 
       type: 'public-key' as const,
       transports: auth.transports as AuthenticatorTransport[],
     }));
@@ -82,7 +80,7 @@ export class BiometricService {
     const opts: GenerateRegistrationOptionsOpts = {
       rpName: this.rpName,
       rpID: this.rpID,
-      userID: this.stringToUint8Array(userId), // ✅ SimpleWebAuthn convierte automáticamente a Uint8Array
+      userID: this.stringToUint8Array(userId),
       userName: user.email,
       userDisplayName: `${user.firstName} ${user.lastName}`,
       attestationType: 'none',
@@ -95,12 +93,6 @@ export class BiometricService {
     };
 
     const options = await generateRegistrationOptions(opts);
-
-    this.logger.debug(`📋 OPTIONS GENERADAS PARA REGISTRO:`, {
-      rpId: options.rp,
-      challenge: options.challenge.substring(0, 20) + '...',
-      user: options.user,
-    });
 
     await this.prisma.user.update({
       where: { id: userId },
@@ -158,11 +150,9 @@ export class BiometricService {
       const { credentialPublicKey, credentialID, counter, credentialDeviceType, credentialBackedUp } =
         verification.registrationInfo;
 
-      // ✅ FIX: Declarar authenticator fuera de la transacción
       let authenticator;
 
       await this.prisma.$transaction(async (tx) => {
-        // ✅ FIX: Asignar el valor dentro de la transacción
         authenticator = await tx.authenticator.create({
           data: {
             userId,
@@ -183,7 +173,7 @@ export class BiometricService {
             ipAddress: 'system',
             userAgent: 'system',
             metadata: {
-              credentialID: authenticator.credentialID, // ✅ Ahora está inicializada
+              credentialID: authenticator.credentialID, 
               deviceName: authenticator.deviceName,
             },
           },
@@ -200,9 +190,6 @@ export class BiometricService {
         });
       });
 
-      this.logger.log(`✅ Credencial WebAuthn registrada para usuario: ${user.email}`);
-
-      // ✅ Retornar después de la transacción
       return {
         id: authenticator.id,
         credentialID: authenticator.credentialID,
@@ -213,7 +200,7 @@ export class BiometricService {
         lastUsedAt: authenticator.lastUsedAt,
       };
     } catch (error) {
-      this.logger.error('❌ Error verificando registro WebAuthn:', error);
+      this.logger.error(' Error verificando registro WebAuthn:', error);
       throw new BadRequestException('Error al verificar la credencial');
     }
   }
@@ -225,10 +212,6 @@ export class BiometricService {
    * @returns Opciones de autenticación
    */
   async generateAuthenticationOptions(email: string) {
-    this.logger.debug(`🔍 Generando opciones de autenticación para: ${email}`);
-    this.logger.debug(`🌐 RP ID: ${this.rpID}`);
-    this.logger.debug(`🌐 Origin: ${this.origin}`);
-    
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { authenticators: true },
@@ -237,9 +220,6 @@ export class BiometricService {
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
-
-    this.logger.debug(`👤 Usuario encontrado: ${user.id}`);
-    this.logger.debug(`🔑 Credenciales encontradas: ${user.authenticators.length}`);
 
     user.authenticators.forEach((auth, idx) => {
       this.logger.debug(`📱 Credencial ${idx + 1}:`);
@@ -255,7 +235,7 @@ export class BiometricService {
     const opts: GenerateAuthenticationOptionsOpts = {
       rpID: this.rpID,
       allowCredentials: user.authenticators.map((auth) => ({
-        id: auth.credentialID, // ✅ Usar directamente el string base64
+        id: auth.credentialID, 
         type: 'public-key' as const,
         transports: auth.transports as AuthenticatorTransport[],
       })),
@@ -263,24 +243,6 @@ export class BiometricService {
     };
 
     const options = await generateAuthenticationOptions(opts);
-
-    this.logger.debug(`📤 Opciones generadas:`);
-    this.logger.debug({
-      rpId: options.rpId,
-      challenge: options.challenge.substring(0, 20) + '...',
-      allowCredentials: options.allowCredentials?.length,
-    });
-
-    this.logger.debug(`📋 OPTIONS GENERADAS PARA AUTH:`);
-    this.logger.debug({
-      rpId: options.rpId,
-      challenge: options.challenge.substring(0, 20) + '...',
-      allowCredentials: options.allowCredentials?.map((c) => ({
-        id: c.id.substring(0, 20) + '...',
-        transports: c.transports,
-      })),
-    });
-
 
     // Guardar challenge
     await this.prisma.user.update({
@@ -304,8 +266,6 @@ export class BiometricService {
    * @returns Usuario autenticado
    */
   async verifyAuthentication(email: string, credential: any) {
-    this.logger.debug(`🔐 Verificando autenticación para: ${email}`);
-    this.logger.debug(`📥 Credential recibida:`, JSON.stringify(credential, null, 2));
 
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -319,41 +279,20 @@ export class BiometricService {
     const expectedChallenge = (user.preferences as any)?.currentChallenge;
 
     if (!expectedChallenge) {
-      this.logger.error('❌ Challenge no encontrado en user.preferences');
       throw new BadRequestException('Challenge no encontrado');
     }
 
-    // ✅ Log del credentialID recibido
-    this.logger.debug(`📋 Expected challenge: ${expectedChallenge.substring(0, 20)}...`);
-    this.logger.debug(`📥 CredentialID recibido: ${credential.rawId?.substring(0, 20)}...`);
-
-
     const credentialID = credential.id;
-    
-    this.logger.debug(`🔍 Buscando credencial: ${credentialID?.substring(0, 20)}...`);
 
     const authenticator = user.authenticators.find(
       (auth) => auth.credentialID === credentialID,
     );
 
     if (!authenticator) {
-      this.logger.error(`❌ Credencial no encontrada. Buscando: ${credentialID?.substring(0, 20)}...`);
-      this.logger.error(
-        `📋 Credenciales disponibles:`,
-        user.authenticators.map((a) => ({
-          credentialID: a.credentialID.substring(0, 20) + '...',
-          deviceName: a.deviceName,
-        })),
-      );
       throw new UnauthorizedException('Credencial no encontrada');
     }
 
-    this.logger.debug(`✅ Credencial encontrada: ${authenticator.deviceName}`);
-
     try {
-
-      this.logger.debug(`🔄 Verificando con @simplewebauthn/server...`);
-
       const opts: VerifyAuthenticationResponseOpts = {
         response: credential as AuthenticationResponseJSON,
         expectedChallenge,
@@ -366,20 +305,11 @@ export class BiometricService {
         },
       };
 
-      this.logger.debug(`🔧 Opciones de verificación:`, {
-        expectedOrigin: opts.expectedOrigin,
-        expectedRPID: opts.expectedRPID,
-        counter: opts.authenticator.counter,
-      });
-
       const verification = await verifyAuthenticationResponse(opts);
 
       if (!verification.verified) {
-        this.logger.error('❌ Verificación fallida - verification.verified = false');
         throw new UnauthorizedException('Verificación fallida');
       }
-
-      this.logger.log(`✅ Verificación exitosa!`);
 
       // Actualizar contador y última vez usado
       await this.prisma.$transaction(async (tx) => {
@@ -476,8 +406,6 @@ export class BiometricService {
       return face;
     });
 
-    this.logger.log(`Descriptor facial registrado para usuario: ${user.email}`);
-
     const dto = new FaceDescriptorResponseDto();
     dto.id = faceDescriptor.id;
     dto.label = faceDescriptor.label ?? undefined;
@@ -564,8 +492,6 @@ export class BiometricService {
         },
       });
     });
-
-    this.logger.log(`Login facial exitoso: ${user.email} (distancia: ${bestDistance})`);
 
     return user;
   }

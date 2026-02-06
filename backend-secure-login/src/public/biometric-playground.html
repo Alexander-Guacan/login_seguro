@@ -373,7 +373,6 @@
                 document.getElementById('tokenDisplay').textContent = accessToken.substring(0, 50) + '...';
                 
                 showOutput('configOutput', data);
-                log('✅ Login exitoso', 'success');
             } catch (error) {
                 showOutput('configOutput', error.message, true);
                 log('❌ Error en login: ' + error.message, 'error');
@@ -478,8 +477,6 @@
             }
             
             try {
-                log('🔄 Solicitando opciones de autenticación...', 'info');
-                
                 // 1. Obtener opciones de autenticación
                 const optionsResponse = await fetch(`${apiUrl}/biometric/webauthn/authentication/options`, {
                     method: 'POST',
@@ -491,12 +488,7 @@
                 });
                 
                 const optionsData = await optionsResponse.json();
-                
-                // ✅ NUEVO: Log detallado de las opciones
-                console.log('📋 Opciones COMPLETAS recibidas:', JSON.stringify(optionsData, null, 2));
-                log(`📋 Opciones recibidas - RP ID: ${optionsData.rpId}`, 'info');
-                log(`📋 Challenge: ${optionsData.challenge.substring(0, 20)}...`, 'info');
-                
+                          
                 // Verificar si hay credenciales disponibles
                 if (!optionsData.allowCredentials || optionsData.allowCredentials.length === 0) {
                     showOutput('authOutput', 
@@ -508,53 +500,14 @@
                         true
                     );
                     return;
-                }
-                
-                // ✅ NUEVO: Log de las credenciales disponibles
-                log(`✅ Credenciales disponibles: ${optionsData.allowCredentials.length}`, 'success');
-                optionsData.allowCredentials.forEach((cred, idx) => {
-                    console.log(`📱 Credencial ${idx + 1}:`, {
-                        id: cred.id.substring(0, 30) + '...',
-                        type: cred.type,
-                        transports: cred.transports
-                    });
-                    log(`📱 Credencial ${idx + 1}: ${cred.id.substring(0, 20)}... [${cred.transports.join(', ')}]`, 'info');
-                });
-                
-                log(`📱 Iniciando autenticación con el dispositivo...`, 'info');
-                log(`⚠️ Si el navegador no responde, verifica que la credencial fue registrada con el MISMO RP ID`, 'info');
-                
+                }          
                 // 2. Iniciar autenticación
                 let credential;
                 try {
                     credential = await SimpleWebAuthnBrowser.startAuthentication(optionsData);
-                    log(`✅ Credencial obtenida del dispositivo!`, 'success');
                 } catch (authError) {
                     console.error('❌ Error en startAuthentication:', authError);
                     
-                    if (authError.name === 'NotAllowedError') {
-                        showOutput('authOutput', 
-                            '❌ Operación cancelada o rechazada por el navegador\n\n' +
-                            '🔍 DIAGNÓSTICO:\n' +
-                            'El navegador no reconoce esta credencial.\n\n' +
-                            '✅ SOLUCIÓN:\n' +
-                            '1. Elimina TODAS las credenciales antiguas\n' +
-                            '2. Haz login tradicional\n' +
-                            '3. Registra una NUEVA credencial WebAuthn\n' +
-                            '4. Intenta el login nuevamente\n\n' +
-                            `📋 RP ID actual: ${optionsData.rpId}\n` +
-                            `📋 Origin actual: https://${optionsData.rpId}`, 
-                            true
-                        );
-                    } else if (authError.name === 'InvalidStateError') {
-                        showOutput('authOutput', 
-                            '⚠️ Esta credencial fue registrada en otro dispositivo\n\n' +
-                            'Debes registrar una nueva credencial en ESTE dispositivo.', 
-                            true
-                        );
-                    } else {
-                        showOutput('authOutput', `❌ Error: ${authError.name} - ${authError.message}`, true);
-                    }
                     return; // ✅ Detener aquí si falla
                 }
                 
@@ -577,26 +530,24 @@
                     localStorage.setItem('authToken', verifyData.accessToken);
                     localStorage.setItem('refreshToken', verifyData.refreshToken);
                     
-                    document.getElementById('tokenStatus').textContent = '✅ Autenticado con WebAuthn';
+                    document.getElementById('tokenStatus').textContent = 'Autenticado con WebAuthn';
                     document.getElementById('tokenStatus').className = 'status connected';
                     document.getElementById('tokenDisplay').textContent = verifyData.accessToken.substring(0, 50) + '...';
                     
                     showOutput('authOutput', 
-                        `✅ Login exitoso con WebAuthn!\n\n` +
+                        `Login exitoso con WebAuthn!\n\n` +
                         `Usuario: ${verifyData.user.email}\n` +
                         `Nombre: ${verifyData.user.firstName} ${verifyData.user.lastName}`, 
                         false
                     );
-                    log('🎉 Login con WebAuthn completado exitosamente', 'success');
                 } else {
-                    showOutput('authOutput', `❌ Error: ${verifyData.message}`, true);
-                    log(`❌ Verificación fallida: ${verifyData.message}`, 'error');
+                    showOutput('authOutput', ` Error: ${verifyData.message}`, true);
+                    log(`Verificación fallida: ${verifyData.message}`, 'error');
                 }
                 
             } catch (error) {
-                console.error('💥 Error completo:', error);
-                log(`❌ Error capturado: ${error.name || 'Unknown'} - ${error.message}`, 'error');
-                showOutput('authOutput', `❌ Error inesperado: ${error.message || error}`, true);
+                console.error('Error completo:', error);
+                showOutput('authOutput', `Error inesperado: ${error.message || error}`, true);
             }
         }
         
@@ -630,9 +581,8 @@
                     `).join('');
                 }
                 
-                log('✅ Lista de credenciales actualizada', 'success');
             } catch (error) {
-                log('❌ Error listando credenciales: ' + error.message, 'error');
+                log('Error listando credenciales: ' + error.message, 'error');
             }
         }
         
@@ -647,10 +597,9 @@
                     headers: { 'Authorization': `Bearer ${accessToken}` }
                 });
                 
-                log('✅ Credencial eliminada', 'success');
                 await listWebAuthnCredentials();
             } catch (error) {
-                log('❌ Error eliminando credencial: ' + error.message, 'error');
+                log('Error eliminando credencial: ' + error.message, 'error');
             }
         }
         
@@ -687,7 +636,6 @@
                 
                 const result = await response.json();
                 showOutput('faceOutput', result);
-                log('✅ Descriptor facial registrado', 'success');
                 
                 await listFaceDescriptors();
             } catch (error) {
