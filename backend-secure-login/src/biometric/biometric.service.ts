@@ -439,7 +439,7 @@ export class BiometricService {
     }
 
     // Comparar con cada descriptor registrado
-    const threshold = 0.6; // Umbral de similitud (ajustable)
+    const threshold = 0.45; // Umbral de similitud (ajustable)
     let bestMatch: any = null;
     let bestDistance = Infinity;
 

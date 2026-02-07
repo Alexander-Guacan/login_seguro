@@ -197,16 +197,23 @@ export class BiometricController {
   @Public()
   @Post('facial/verify')
   @HttpCode(HttpStatus.OK)
-  async verifyFace(@Body() verifyDto: VerifyFaceDto) {
+  async verifyFace(
+    @Body() verifyDto: VerifyFaceDto,
+    @Req() req: any,
+  ) {
     // Verificar rostro
     const user = await this.biometricService.verifyFace(verifyDto);
 
+    const ipAddress = req.ip || 'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
     // Retornar éxito
-    return {
-      success: true,
-      userId: user.id,
-      email: user.email,
-    };
+    return this.authService.biometricLogin(
+      user.id,
+      'facial',
+      ipAddress,
+      userAgent,
+    );
   }
 
   /**
