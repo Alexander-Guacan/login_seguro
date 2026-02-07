@@ -3,7 +3,9 @@ import type { LoginRequestDTO } from "../dto/auth";
 import * as yup from "yup";
 import { useAuth } from "../hooks/auth/useAuth";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
+import { PasswordInput } from "../components/Form/PasswordInput";
+import { SubmitButton } from "../components/Form/SubmitButton";
 
 const initValues: LoginRequestDTO = {
   email: "",
@@ -45,47 +47,55 @@ export function LoginPage() {
     <main className="content-center text-center w-full h-full">
       <section className="form-container mx-auto max-w-95">
         <header>
-          <h1>Iniciar Sesión</h1>
+          <h1 className="form-container__title">Iniciar sesión</h1>
         </header>
         <Formik
           initialValues={initValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, values, handleChange, handleBlur }) => (
             <Form noValidate>
               <div className="field-group">
                 <label htmlFor="email">Correo electrónico</label>
-                <Field
-                  type="email"
-                  id="email"
-                  name="email"
-                  required
-                  autoFocus
-                />
+                <Field type="email" id="email" name="email" />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="email"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="password">Contraseña</label>
-                <Field type="password" id="password" name="password" required />
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  value={values.password}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="password"
                 />
               </div>
-              <button className="button" type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Cargando" : "Ingresar"}
-              </button>
-              {formError && <p className="alert alert--error">{formError}</p>}
+              <SubmitButton loading={isSubmitting}>Ingresar</SubmitButton>
+              {formError && (
+                <p className="alert alert--danger text-xs">{formError}</p>
+              )}
             </Form>
           )}
         </Formik>
       </section>
+      <article className="py-6">
+        <p>
+          ¿No tienes una cuenta?{" "}
+          <Link className="link" to={"/login"}>
+            Registrate
+          </Link>
+        </p>
+      </article>
     </main>
   );
 }

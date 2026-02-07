@@ -1,3 +1,4 @@
+import { AiOutlineUser } from "react-icons/ai";
 import { Link } from "react-router";
 
 export function HomePage() {
@@ -12,7 +13,11 @@ export function HomePage() {
           combina correo, contraseña y verificación biométrica. Añade una capa
           extra de protección sin sacrificar la experiencia del usuario.
         </p>
-        <Link to={"/register"} className="link link--solid">
+        <Link
+          to={"/register"}
+          className="link-solid flex gap-x-2 justify-center items-center"
+        >
+          <AiOutlineUser />
           Registrarse
         </Link>
       </section>

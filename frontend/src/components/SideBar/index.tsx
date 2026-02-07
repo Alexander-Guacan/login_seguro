@@ -2,10 +2,15 @@ import { Link, NavLink } from "react-router";
 import { useAuth } from "../../hooks/auth/useAuth";
 import { useMemo } from "react";
 import type { UserRole } from "../../enums/userRole.enum";
+import { MdOutlinePowerSettingsNew } from "react-icons/md";
+import { AiOutlineUser } from "react-icons/ai";
+import { IoLockOpenOutline } from "react-icons/io5";
+import { PiUsersThree } from "react-icons/pi";
 
 interface NavOption {
   label: string;
   to: string;
+  icon: React.ReactNode;
 }
 
 interface NavSection {
@@ -23,25 +28,33 @@ export function SideBar() {
       ADMIN: [
         {
           title: "Usuario",
-          options: [{ label: "Perfil", to: "/profile" }],
-        },
-        {
-          title: "Seguridad",
-          options: [{ label: "Contraseña", to: "/password" }],
+          options: [
+            { label: "Perfil", to: "/profile", icon: <AiOutlineUser /> },
+            {
+              label: "Contraseña",
+              to: "/password",
+              icon: <IoLockOpenOutline />,
+            },
+          ],
         },
         {
           title: "Administración",
-          options: [{ label: "Usuarios", to: "/users" }],
+          options: [
+            { label: "Usuarios", to: "/users", icon: <PiUsersThree /> },
+          ],
         },
       ],
       CLIENT: [
         {
           title: "Usuario",
-          options: [{ label: "Perfil", to: "/profile" }],
-        },
-        {
-          title: "Seguridad",
-          options: [{ label: "Contraseña", to: "/password" }],
+          options: [
+            { label: "Perfil", to: "/profile", icon: <AiOutlineUser /> },
+            {
+              label: "Contraseña",
+              to: "/password",
+              icon: <IoLockOpenOutline />,
+            },
+          ],
         },
       ],
     };
@@ -50,49 +63,54 @@ export function SideBar() {
   }, [user]);
 
   return (
-    <header className="h-full px-6 py-5 min-w-60 border-r-gray-600 border-r">
-      <nav className="h-full flex flex-col gap-y-6">
-        <section>
-          <Link to={"/dashboard"} className="inline-flex items-center w-fit">
-            <i className="text-2xl not-italic">🔐</i>
-            <h2 className="font-semibold text-2xl">SecLog</h2>
-          </Link>
-          <p className="text-gray-400 text-sm">{user?.fullName}</p>
-        </section>
-        <article className="grow flex flex-col justify-between">
-          <div className="flex flex-col gap-y-6">
-            {optionsByRole.map(({ title, options }) => (
-              <section
-                className="flex flex-col gap-y-3"
-                key={`section-${title}`}
-              >
-                <h2 className="font-semibold">{title}</h2>
-                <ul>
-                  {options.map(({ label, to }) => (
-                    <li key={`label-${label}`}>
-                      <NavLink
-                        className={({ isActive }) =>
-                          `nav-option ${isActive ? "nav-option--selected" : ""}`
-                        }
-                        to={to}
-                      >
-                        {label}
-                      </NavLink>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
+    <header className="h-full px-6 min-w-66 border-r-gray-800/10 border-r grid grid-rows-[auto_1fr_auto] overflow-hidden">
+      <section className="py-5">
+        <Link to={"/dashboard"} className="flex gap-x-2">
+          <i className="text-2xl not-italic">🔐</i>
+          <h2 className="font-semibold text-2xl">SecLog</h2>
+        </Link>
+      </section>
+      <nav className="flex flex-col gap-y-6 py-3 overflow-x-auto">
+        {optionsByRole.map(({ title, options }) => (
+          <section className="flex flex-col gap-y-3" key={`section-${title}`}>
+            <h2 className="font-semibold">{title}</h2>
+            <ul>
+              {options.map(({ label, to, icon }) => (
+                <li key={`label-${label}`}>
+                  <NavLink
+                    className={({ isActive }) =>
+                      `nav-option ${isActive ? "nav-option--active" : ""}`
+                    }
+                    to={to}
+                  >
+                    {icon}
+                    <span>{label}</span>
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))}
+      </nav>
+      <div className="py-5">
+        <section className="bg-indigo-500/10 rounded-xl p-4 flex justify-between items-center">
+          <div className="flex gap-x-4 items-center">
+            <AiOutlineUser />
+            <header className="flex flex-col justify-between">
+              <h3 className="font-semibold text-sm">{user?.fullName}</h3>
+              <p className="text-xs text-gray-800/80">{user?.roleName}</p>
+            </header>
           </div>
           <button
-            className="button button--danger"
+            className="text-indigo-500 text-xl"
             type="button"
             onClick={logout}
+            title="Cerrar sesión"
           >
-            Cerrar Sesión
+            <MdOutlinePowerSettingsNew />
           </button>
-        </article>
-      </nav>
+        </section>
+      </div>
     </header>
   );
 }

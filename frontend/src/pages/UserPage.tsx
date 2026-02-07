@@ -6,6 +6,8 @@ import { useMemo, useState } from "react";
 import * as yup from "yup";
 import { User } from "../models/user";
 import { PageHeader } from "../components/PageSection/PageHeader";
+import { SubmitButton } from "../components/Form/SubmitButton";
+import { PasswordInput } from "../components/Form/PasswordInput";
 
 type FormValues = {
   firstName: string;
@@ -101,12 +103,15 @@ export function UserPage() {
     setSubmitting(false);
   };
 
-  if (!userId) return null;
+  if (!userId || !user) return null;
 
   return (
     <main className="flex flex-col gap-6 h-full">
-      <PageHeader title="Perfil de usuario" />
-      <section className="form-container form-container--multicolumn mx-auto w-[50%]">
+      <PageHeader
+        title="Perfil de usuario"
+        breadcrumbsLabels={["Dashboard", "Usuarios", user.fullName]}
+      />
+      <section className="form-container form-container--multicolumn mx-auto w-[70%]">
         <header>
           <h3>Administrar usuario</h3>
         </header>
@@ -116,13 +121,13 @@ export function UserPage() {
           onSubmit={handleSubmit}
           enableReinitialize
         >
-          {({ dirty, isSubmitting }) => (
+          {({ dirty, isSubmitting, values, handleChange, handleBlur }) => (
             <Form>
               <div className="field-group">
                 <label htmlFor="firstName">Nombre</label>
                 <Field type="text" id="firstName" name="firstName" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="firstName"
                 />
@@ -131,7 +136,7 @@ export function UserPage() {
                 <label htmlFor="lastName">Apellido</label>
                 <Field type="text" id="lastName" name="lastName" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="lastName"
                 />
@@ -140,7 +145,7 @@ export function UserPage() {
                 <label htmlFor="email">Correo electrónico</label>
                 <Field type="email" id="email" name="email" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="email"
                 />
@@ -156,51 +161,52 @@ export function UserPage() {
                   </option>
                 </Field>
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="role"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="password">Contraseña</label>
-                <Field type="password" id="password" name="password" />
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  value={values.password}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="password"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="passwordVerification">Repetir contraseña</label>
-                <Field
-                  type="password"
+                <PasswordInput
                   id="passwordVerification"
                   name="passwordVerification"
+                  value={values.passwordVerification}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="passwordVerification"
                 />
               </div>
-              <div className="field-group">
+              <div className="field-group flex-row gap-x-2 items-center">
                 <label htmlFor="isActive">Activo</label>
                 <Field type="checkbox" id="isActive" name="isActive" />
-                <ErrorMessage
-                  className="input-message input-message--error"
-                  component="p"
-                  name="isActive"
-                />
               </div>
               <div className="flex flex-col gap-y-4">
-                <button
-                  className="button"
-                  type="submit"
-                  disabled={!dirty || isSubmitting}
-                >
-                  {isSubmitting ? "Actualizando..." : "Actualizar"}
-                </button>
-                {formError && <p className="alert alert--error">{formError}</p>}
+                <SubmitButton disabled={!dirty} loading={isSubmitting}>
+                  Actualizar
+                </SubmitButton>
+                {formError && (
+                  <p className="alert alert--danger text-xs">{formError}</p>
+                )}
                 {formMessage && (
                   <p className="alert alert--success">{formMessage}</p>
                 )}

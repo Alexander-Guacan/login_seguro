@@ -5,6 +5,7 @@ import { getRoleName, UserRole } from "../enums/userRole.enum";
 import * as yup from "yup";
 import { useState } from "react";
 import { PageHeader } from "../components/PageSection/PageHeader";
+import { SubmitButton } from "../components/Form/SubmitButton";
 
 const validationSchema = yup.object({
   firstName: yup
@@ -35,6 +36,7 @@ export function ProfilePage() {
     if (!result.success) {
       setFormError(result.error);
     } else {
+      // TODO: update user context with new profile info
       setFormMessage(result.message);
       setTimeout(() => {
         setFormMessage(null);
@@ -48,8 +50,8 @@ export function ProfilePage() {
 
   return (
     <main className="flex flex-col gap-6 h-full">
-      <PageHeader title="Perfil" />
-      <section className="form-container form-container--multicolumn w-fit">
+      <PageHeader title="Perfil" breadcrumbsLabels={["Dashboard", "Perfil"]} />
+      <section className="form-container form-container--multicolumn w-fit mx-auto">
         <header>
           <h3>Perfil</h3>
         </header>
@@ -60,12 +62,12 @@ export function ProfilePage() {
           enableReinitialize
         >
           {({ isSubmitting, dirty }) => (
-            <Form>
+            <Form noValidate>
               <div className="field-group">
                 <label htmlFor="firstName">Nombre</label>
                 <Field type="text" id="firstName" name="firstName" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="firstName"
                 />
@@ -74,7 +76,7 @@ export function ProfilePage() {
                 <label htmlFor="lastName">Apellido</label>
                 <Field type="text" id="lastName" name="lastName" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="lastName"
                 />
@@ -83,7 +85,7 @@ export function ProfilePage() {
                 <label htmlFor="email">Correo electrónico</label>
                 <Field type="email" id="email" name="email" readOnly disabled />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="email"
                 />
@@ -99,22 +101,20 @@ export function ProfilePage() {
                   </option>
                 </Field>
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="role"
                 />
               </div>
               <div className="flex flex-col gap-y-4">
-                <button
-                  className="button"
-                  type="submit"
-                  disabled={!dirty || isSubmitting}
-                >
-                  {isSubmitting ? "Actualizando..." : "Actualizar"}
-                </button>
-                {formError && <p className="alert alert--error">{formError}</p>}
+                <SubmitButton disabled={!dirty} loading={isSubmitting}>
+                  Actualizar
+                </SubmitButton>
+                {formError && (
+                  <p className="alert alert--danger text-xs">{formError}</p>
+                )}
                 {formMessage && (
-                  <p className="alert alert--success">{formMessage}</p>
+                  <p className="alert alert--success text-sm">{formMessage}</p>
                 )}
               </div>
             </Form>

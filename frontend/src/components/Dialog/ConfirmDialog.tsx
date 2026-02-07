@@ -17,7 +17,7 @@ export function ConfirmDialog({
     <dialog
       className={
         open
-          ? "fixed w-full h-full flex items-center justify-center text-white bg-white/30 backdrop-blur-md"
+          ? "fixed w-dvw h-dvh flex items-center justify-center text-white bg-white/30 backdrop-blur-md top-0"
           : ""
       }
       open={open}
@@ -29,14 +29,14 @@ export function ConfirmDialog({
         <p>{question}</p>
         <footer className="flex justify-evenly">
           <button
-            className="button button--accept"
+            className="button-solid button-solid--success"
             type="button"
             onClick={onAccept}
           >
             Aceptar
           </button>
           <button
-            className="button button--danger"
+            className="button-solid button-solid--danger"
             type="button"
             onClick={onDecline}
           >

@@ -1,6 +1,5 @@
 import {
   ErrorMessage,
-  Field,
   Form,
   Formik,
   type FormikProps,
@@ -11,6 +10,8 @@ import { useRef, useState } from "react";
 import * as yup from "yup";
 import { ConfirmDialog } from "../components/Dialog/ConfirmDialog";
 import { PageHeader } from "../components/PageSection/PageHeader";
+import { PasswordInput } from "../components/Form/PasswordInput";
+import { SubmitButton } from "../components/Form/SubmitButton";
 
 const initialValues = {
   oldPassword: "",
@@ -102,8 +103,11 @@ export function PasswordPage() {
   };
 
   return (
-    <main className="flex flex-col gap-6 h-full relative">
-      <PageHeader title="Contraseña" />
+    <main className="flex flex-col gap-6 h-full">
+      <PageHeader
+        title="Contraseña"
+        breadcrumbsLabels={["Dashboard", "Contraseña"]}
+      />
       <section className="form-container w-[50%] mx-auto">
         <header>
           <h3>Cambiar Contraseña</h3>
@@ -114,60 +118,63 @@ export function PasswordPage() {
           onSubmit={handleSubmit}
           innerRef={formRef}
         >
-          {({ isSubmitting }) => (
-            <Form>
+          {({ isSubmitting, values, handleChange, handleBlur }) => (
+            <Form noValidate>
               <div className="field-group">
                 <label htmlFor="oldPassword">Contraseña actual</label>
-                <Field
-                  type="password"
+                <PasswordInput
                   id="oldPassword"
                   name="oldPassword"
+                  value={values.oldPassword}
                   required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="oldPassword"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="newPassword">Nueva contraseña</label>
-                <Field
-                  type="password"
+                <PasswordInput
                   id="newPassword"
                   name="newPassword"
+                  value={values.newPassword}
                   required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="newPassword"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="passwordVerification">Repetir contraseña</label>
-                <Field
-                  type="password"
+                <PasswordInput
                   id="passwordVerification"
                   name="passwordVerification"
+                  value={values.passwordVerification}
                   required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="passwordVerification"
                 />
               </div>
               <div className="flex flex-col gap-y-4">
-                <button
-                  className="button"
-                  type="button"
-                  onClick={validateSubmit}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Cambiando..." : "Cambiar contraseña"}
-                </button>
-                {formError && <p className="alert alert--error">{formError}</p>}
+                <SubmitButton loading={isSubmitting} onClick={validateSubmit}>
+                  Cambiar contraseña
+                </SubmitButton>
+                {formError && (
+                  <p className="alert alert--danger text-xs">{formError}</p>
+                )}
                 {formMessage && (
                   <p className="alert alert--success">{formMessage}</p>
                 )}

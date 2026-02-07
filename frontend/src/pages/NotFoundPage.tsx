@@ -17,7 +17,7 @@ export function NotFoundPage() {
           Lo sentimos, la página que estas buscando no existe, fue removida o la
           URL esta incorrecta.
         </p>
-        <a className="link link--solid" onClick={goBack}>
+        <a className="link-solid" onClick={goBack}>
           Regresar
         </a>
       </section>

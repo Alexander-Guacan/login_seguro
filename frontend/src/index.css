@@ -2,97 +2,125 @@
 @tailwind utilities;
 
 body {
-  background-color: #2a3447;
-  color: white;
+  font-family: sans-serif;
 }
 
 @layer components {
-  button:hover {
-    @apply cursor-pointer;
+  a, button {
+    &:hover {
+      @apply cursor-pointer;
+    }
+
+    &:disabled {
+      @apply cursor-not-allowed;
+    }
   }
 
   label {
-    @apply font-semibold text-left cursor-pointer w-fit;
+    @apply text-left cursor-pointer w-fit;
   }
   
-  input {
-    @apply border-0 bg-white text-black rounded-md px-2 py-1;
+  input:is([type="text"], [type="password"], [type="email"], [type="search"]) {
+    @apply bg-white text-black rounded-lg px-4 py-2 border border-gray-800/15 w-full;
     
     &:focus {
-      @apply outline-2 outline-blue-500;
+      @apply outline outline-indigo-500;
     }
+
+    &::placeholder {
+      @apply text-gray-700/60;
+    }
+
+    &:disabled {
+      @apply text-gray-700;
+    }
+  }
+
+  input[type="checkbox"] {
+    @apply accent-indigo-500 text-white;
   }
 
   select {
-    @apply bg-white text-black px-2 py-1 rounded-md;
+    @apply bg-white text-black rounded-lg px-3 py-2.5 border border-gray-800/15 w-full;
+
+    &:focus {
+      @apply outline outline-indigo-500;
+    }
+
+    &:disabled {
+      @apply text-gray-700;
+    }
   }
 
-  .link {
-    @apply px-4 py-2 inline-block cursor-pointer;
+  .link{ 
+    @apply text-indigo-500;
+
+    &:hover {
+      @apply underline;
+    }
   }
 
-  .link--solid {
-    @apply bg-blue-600 rounded-md text-white;
+  .link-solid {
+    @apply px-4 py-2 bg-indigo-500 rounded-lg border-2 border-indigo-500 text-white
+  }
+
+  .link-outline {
+    @apply px-4 py-2 text-indigo-500 border-2 rounded-lg border-indigo-500;
+  }
+
+  .button-solid {
+    @apply rounded-lg px-4 py-2 bg-indigo-500 text-white text-center;
+
+    &:disabled {
+      @apply bg-gray-800/40;
+    }
+  }
+
+  .button-solid--success {
+    @apply bg-green-500;
+  }
+
+  .button-solid--danger {
+    @apply bg-red-500;
   }
 
   .nav-option {
-    @apply p-3 inline-block w-full rounded-md;
-    transition: all ease-in-out 350ms;
+    @apply flex gap-x-3 items-center p-3 transition-all ease-in-out duration-300 rounded-lg;
 
     &:hover {
-      @apply bg-gray-600 cursor-pointer;
-    }
-
-    &:disabled {
-      @apply bg-transparent transition-none cursor-default;
+      @apply bg-blue-400/15;
     }
   }
 
-  .nav-option--selected {
-    @apply bg-blue-400 rounded-md text-white font-semibold transition-none cursor-default pointer-events-none;
+  .nav-option--active {
+    @apply bg-blue-400/90 text-white cursor-default;
 
     &:hover {
-      @apply bg-blue-400 cursor-default;
+      @apply bg-blue-400/90 cursor-default;
     }
-  }
-
-  .button {
-    @apply bg-blue-500 rounded-md text-white px-4 py-2 inline-block cursor-pointer;
-
-    &:disabled {
-      @apply cursor-default bg-transparent border border-gray-600;
-    }
-  }
-
-  .button--accept {
-    @apply bg-green-500;
-  }
-
-  .button--danger {
-    @apply bg-red-500;
   }
 
   .alert {
-    @apply px-4 py-2 inline-block bg-blue-500 text-white rounded-md;
+    @apply rounded-sm px-4 py-3 text-indigo-500 bg-blue-200 text-left;
   }
 
-  .alert--error {
-    @apply bg-red-500;
+  .alert--danger {
+    @apply bg-red-400/20 text-red-400;
   }
 
   .alert--warning {
-    @apply bg-amber-500;
+    @apply bg-amber-400/20 text-amber-400;
   }
 
   .alert--success {
-    @apply bg-green-500;
+    @apply bg-green-400/20 text-green-400;
   }
 
   .form-container {
-    @apply flex flex-col gap-y-6 border border-gray-600 rounded-md p-6;
+    @apply flex flex-col gap-y-6 border border-gray-800/15 rounded-md p-6;
     
-    header {
-      @apply font-bold text-2xl;
+    .form-container__title {
+      @apply font-semibold text-xl;
     }
     
     form {
@@ -103,24 +131,16 @@ body {
 
         &:has(select:required, input:required) > label::after {
           content: '*';
-          @apply text-red-500;
+          @apply text-red-400;
         }
 
-        &:has(input[type="checkbox"]) {
-          @apply flex-row gap-x-4 items-center;
+        &:has(.alert--danger) input {
+          @apply outline outline-red-400;
         }
       }
 
-      .field-group--horizontal {
-        @apply flex-row gap-x-2;
-      }
-      
-      .input-message {
-        @apply text-sm;
-      }
-      
-      .input-message--error {
-        @apply text-red-500;
+      &:has(.alert--success) :is(input, select) {
+        @apply outline outline-green-400;
       }
     }
   }
@@ -138,7 +158,7 @@ body {
   }
     
   .table-container {
-    @apply flex flex-col gap-y-8 p-8 border rounded-md border-gray-600 overflow-hidden;
+    @apply flex flex-col gap-y-8 p-6 border rounded-lg border-gray-800/15 overflow-hidden;
     
     .table-container__title {
       @apply text-xl font-semibold;
@@ -156,29 +176,28 @@ body {
       }
 
       th, td { 
-        @apply px-6 py-4 border-b border-b-gray-600 text-left text-base;
+        @apply py-4 pr-4 border-b border-b-gray-800/15 text-left text-base;
       }
       
       tr:last-child > td {
         border-bottom: none;
-      }
-      
-      :is(th, td):first-child {
-        @apply pl-0;
       }
 
       tfoot td {
         @apply text-center font-semibold;
       }
     }
-
-    footer {
-      @apply flex justify-between items-center;
-
-      ul {
-        @apply flex gap-x-4 items-center;
-      }
-    }
   }
 
+  .card {
+    @apply flex flex-col items-center justify-center gap-y-3 rounded-lg p-6 bg-indigo-500/15 text-indigo-500 text-center min-w-42 w-fit aspect-square;
+
+    .card__title {
+      @apply font-semibold;
+    }
+
+    .card__value {
+      @apply text-xl font-semibold;
+    }
+  }
 }

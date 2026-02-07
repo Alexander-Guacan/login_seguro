@@ -2,6 +2,9 @@ import { ErrorMessage, Field, Form, Formik, type FormikHelpers } from "formik";
 import { useState } from "react";
 import * as yup from "yup";
 import { useAuth } from "../hooks/auth/useAuth";
+import { PasswordInput } from "../components/Form/PasswordInput";
+import { SubmitButton } from "../components/Form/SubmitButton";
+import { Link } from "react-router";
 
 interface FormValues {
   firstName: string;
@@ -30,7 +33,10 @@ const validationSchema = yup.object({
     .min(3, "Apellido muy corto")
     .max(50, "Apellido muy largo")
     .required("Este campo es obligatorio"),
-  email: yup.string().email("Ingrese un email válido"),
+  email: yup
+    .string()
+    .email("Ingrese un email válido")
+    .required("Este campo es obligatorio"),
   password: yup
     .string()
     .min(8, "La contraseña es muy corta")
@@ -41,10 +47,12 @@ const validationSchema = yup.object({
         message:
           "Debe contener mayúscula, minúscula, número y carácter especial.",
       },
-    ),
+    )
+    .required("Este campo es obligatorio"),
   passwordVerification: yup
     .string()
-    .equals([yup.ref("password")], "Las contraseñas no coinciden"),
+    .equals([yup.ref("password")], "Las contraseñas no coinciden")
+    .required("Este campo es obligatorio"),
 });
 
 export function RegisterPage() {
@@ -81,47 +89,72 @@ export function RegisterPage() {
     <main className="content-center text-center w-full h-full">
       <section className="form-container form-container--multicolumn mx-auto max-w-150">
         <header>
-          <h1>Registro de usuario</h1>
+          <h1 className="form-container__title">Registro de usuario</h1>
         </header>
         <Formik
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, values, handleChange, handleBlur }) => (
             <Form>
               <div className="field-group">
                 <label htmlFor="firstName">Nombre</label>
-                <Field type="text" id="firstName" name="firstName" required />
+                <Field
+                  type="text"
+                  id="firstName"
+                  name="firstName"
+                  placeholder="John"
+                  required
+                />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="firstName"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="lastName">Apellido</label>
-                <Field type="text" id="lastName" name="lastName" required />
+                <Field
+                  type="text"
+                  id="lastName"
+                  name="lastName"
+                  placeholder="Doe"
+                  required
+                />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="lastName"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="email">Correo electrónico</label>
-                <Field type="email" id="email" name="email" required />
+                <Field
+                  type="email"
+                  id="email"
+                  name="email"
+                  placeholder="johndoe@secure-login.com"
+                  required
+                />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="email"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="password">Contraseña</label>
-                <Field type="password" id="password" name="password" required />
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  value={values.password}
+                  required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="password"
                 />
@@ -130,27 +163,25 @@ export function RegisterPage() {
                 <label htmlFor="passwordVerification">
                   Verificar contraseña
                 </label>
-                <Field
-                  type="password"
+                <PasswordInput
                   id="passwordVerification"
                   name="passwordVerification"
+                  value={values.passwordVerification}
                   required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="passwordVerification"
                 />
               </div>
               <div className="flex flex-col gap-y-4">
-                <button
-                  className="button"
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Registrando..." : "Registrarse"}
-                </button>
-                {formError && <p className="alert alert--error">{formError}</p>}
+                <SubmitButton loading={isSubmitting}>Registrarse</SubmitButton>
+                {formError && (
+                  <p className="alert alert--danger text-xs">{formError}</p>
+                )}
                 {formMessage && (
                   <p className="alert alert--success">{formMessage}</p>
                 )}
@@ -159,6 +190,14 @@ export function RegisterPage() {
           )}
         </Formik>
       </section>
+      <article className="py-6">
+        <p>
+          ¿Ya tienes una cuenta?{" "}
+          <Link className="link" to={"/login"}>
+            Inicia Sesión
+          </Link>
+        </p>
+      </article>
     </main>
   );
 }

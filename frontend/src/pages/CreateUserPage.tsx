@@ -5,6 +5,8 @@ import * as yup from "yup";
 import { useState } from "react";
 import { useUser } from "../hooks/user/useUser";
 import { User } from "../models/user";
+import { PasswordInput } from "../components/Form/PasswordInput";
+import { SubmitButton } from "../components/Form/SubmitButton";
 
 interface FormValues {
   firstName: string;
@@ -35,7 +37,10 @@ const validationSchema = yup.object({
     .min(3, "Apellido muy corto")
     .max(50, "Apellido muy largo")
     .required("Este campo es obligatorio"),
-  email: yup.string().email("Ingrese un email válido"),
+  email: yup
+    .string()
+    .email("Ingrese un email válido")
+    .required("Este campo es obligatorio"),
   password: yup
     .string()
     .min(8, "La contraseña es muy corta")
@@ -46,10 +51,12 @@ const validationSchema = yup.object({
         message:
           "Debe contener mayúscula, minúscula, número y carácter especial.",
       },
-    ),
+    )
+    .required("Este campo es obligatorio"),
   passwordVerification: yup
     .string()
-    .equals([yup.ref("password")], "Las contraseñas no coinciden"),
+    .equals([yup.ref("password")], "Las contraseñas no coinciden")
+    .required("Este campo es obligatorio"),
 });
 
 export function CreateUserPage() {
@@ -89,7 +96,10 @@ export function CreateUserPage() {
 
   return (
     <main className="flex flex-col gap-y-6">
-      <PageHeader title="Crear usuario" />
+      <PageHeader
+        title="Crear usuario"
+        breadcrumbsLabels={["Dashboard", "Usuarios", "Registrar usuario"]}
+      />
       <section className="form-container form-container--multicolumn">
         <header>
           <h2 className="form-container__title">Usuario</h2>
@@ -99,13 +109,13 @@ export function CreateUserPage() {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting }) => (
-            <Form>
+          {({ isSubmitting, values, handleChange, handleBlur }) => (
+            <Form noValidate>
               <div className="field-group">
                 <label htmlFor="firstName">Nombre</label>
                 <Field type="text" id="firstName" name="firstName" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="firstName"
                 />
@@ -114,7 +124,7 @@ export function CreateUserPage() {
                 <label htmlFor="lastName">Apellido</label>
                 <Field type="text" id="lastName" name="lastName" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="lastName"
                 />
@@ -123,7 +133,7 @@ export function CreateUserPage() {
                 <label htmlFor="email">Correo electrónico</label>
                 <Field type="email" id="email" name="email" required />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="email"
                 />
@@ -139,43 +149,48 @@ export function CreateUserPage() {
                   </option>
                 </Field>
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="role"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="password">Contraseña</label>
-                <Field type="password" id="password" name="password" required />
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  value={values.password}
+                  required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="password"
                 />
               </div>
               <div className="field-group">
                 <label htmlFor="passwordVerification">Repetir contraseña</label>
-                <Field
-                  type="password"
+                <PasswordInput
                   id="passwordVerification"
                   name="passwordVerification"
+                  value={values.password}
                   required
+                  onChange={handleChange}
+                  onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="input-message input-message--error"
+                  className="alert alert--danger text-xs"
                   component="p"
                   name="passwordVerification"
                 />
               </div>
               <div className="flex flex-col gap-y-4">
-                <button
-                  className="button"
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Actualizando..." : "Actualizar"}
-                </button>
-                {formError && <p className="alert alert--error">{formError}</p>}
+                <SubmitButton loading={isSubmitting}>Actualizar</SubmitButton>
+                {formError && (
+                  <p className="alert alert--danger text-xs">{formError}</p>
+                )}
                 {formMessage && (
                   <p className="alert alert--success">{formMessage}</p>
                 )}
