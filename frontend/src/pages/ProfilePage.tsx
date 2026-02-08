@@ -6,6 +6,8 @@ import * as yup from "yup";
 import { useState } from "react";
 import { PageHeader } from "../components/PageSection/PageHeader";
 import { SubmitButton } from "../components/Form/SubmitButton";
+import { useAuth } from "../hooks/auth/useAuth";
+import { useAlert } from "../hooks/useAlert";
 
 const validationSchema = yup.object({
   firstName: yup
@@ -22,6 +24,8 @@ const validationSchema = yup.object({
 
 export function ProfilePage() {
   const { user, updateProfile } = useProfile();
+  const { reloadSession } = useAuth();
+  const { showAlert } = useAlert();
   const [formError, setFormError] = useState<string | null>(null);
   const [formMessage, setFormMessage] = useState<string | null>(null);
 
@@ -31,16 +35,26 @@ export function ProfilePage() {
   ) => {
     setFormError(null);
 
-    const result = await updateProfile(values);
+    const updateResult = await updateProfile(values);
 
-    if (!result.success) {
-      setFormError(result.error);
+    if (!updateResult.success) {
+      setFormError(updateResult.error);
     } else {
-      // TODO: update user context with new profile info
-      setFormMessage(result.message);
+      setFormMessage(updateResult.message);
+
       setTimeout(() => {
         setFormMessage(null);
       }, 3500);
+    }
+
+    if (updateResult.success) {
+      const reloadResult = await reloadSession();
+
+      if (!reloadResult.success) {
+        showAlert(reloadResult.error, { type: "error" });
+      } else {
+        showAlert(reloadResult.message, { type: "success" });
+      }
     }
 
     setSubmitting(false);
@@ -51,7 +65,7 @@ export function ProfilePage() {
   return (
     <main className="flex flex-col gap-6 h-full">
       <PageHeader title="Perfil" breadcrumbsLabels={["Dashboard", "Perfil"]} />
-      <section className="form-container form-container--multicolumn w-fit mx-auto">
+      <section className="form-container mx-auto w-full max-w-100">
         <header>
           <h3>Perfil</h3>
         </header>
@@ -67,7 +81,7 @@ export function ProfilePage() {
                 <label htmlFor="firstName">Nombre</label>
                 <Field type="text" id="firstName" name="firstName" required />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="firstName"
                 />
@@ -76,7 +90,7 @@ export function ProfilePage() {
                 <label htmlFor="lastName">Apellido</label>
                 <Field type="text" id="lastName" name="lastName" required />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="lastName"
                 />
@@ -85,7 +99,7 @@ export function ProfilePage() {
                 <label htmlFor="email">Correo electrónico</label>
                 <Field type="email" id="email" name="email" readOnly disabled />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="email"
                 />
@@ -101,7 +115,7 @@ export function ProfilePage() {
                   </option>
                 </Field>
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="role"
                 />
@@ -111,7 +125,7 @@ export function ProfilePage() {
                   Actualizar
                 </SubmitButton>
                 {formError && (
-                  <p className="alert alert--danger text-xs">{formError}</p>
+                  <p className="alert alert--error text-xs">{formError}</p>
                 )}
                 {formMessage && (
                   <p className="alert alert--success text-sm">{formMessage}</p>

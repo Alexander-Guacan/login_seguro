@@ -12,6 +12,7 @@ import { ConfirmDialog } from "../components/Dialog/ConfirmDialog";
 import { PageHeader } from "../components/PageSection/PageHeader";
 import { PasswordInput } from "../components/Form/PasswordInput";
 import { SubmitButton } from "../components/Form/SubmitButton";
+import { useDialog } from "../hooks/useDialog";
 
 const initialValues = {
   oldPassword: "",
@@ -46,7 +47,11 @@ export function PasswordPage() {
   const [formMessage, setFormMessage] = useState<string | null>(null);
   const { changePassword } = usePassword();
   const formRef = useRef<FormikProps<FormValues>>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+  const {
+    open: confirmDialogOpen,
+    show: showConfirmDialog,
+    hide: hideConfirmDialog,
+  } = useDialog();
 
   const handleSubmit = async (
     values: FormValues,
@@ -72,10 +77,6 @@ export function PasswordPage() {
     setSubmitting(false);
   };
 
-  const openModal = () => setModalOpen(true);
-
-  const closeModal = () => setModalOpen(false);
-
   const validateSubmit = async () => {
     if (!formRef.current) return;
 
@@ -84,11 +85,11 @@ export function PasswordPage() {
 
     if (hasErrors) return await formRef.current?.submitForm();
 
-    openModal();
+    showConfirmDialog();
   };
 
   const submitForm = async () => {
-    closeModal();
+    hideConfirmDialog();
 
     if (!formRef.current) return;
 
@@ -99,7 +100,7 @@ export function PasswordPage() {
     if (!formRef.current) return;
 
     formRef.current.resetForm();
-    closeModal();
+    hideConfirmDialog();
   };
 
   return (
@@ -108,9 +109,9 @@ export function PasswordPage() {
         title="Contraseña"
         breadcrumbsLabels={["Dashboard", "Contraseña"]}
       />
-      <section className="form-container w-[50%] mx-auto">
+      <section className="form-container mx-auto w-full max-w-100">
         <header>
-          <h3>Cambiar Contraseña</h3>
+          <h3 className="form-container__title">Cambiar Contraseña</h3>
         </header>
         <Formik
           initialValues={initialValues}
@@ -131,7 +132,7 @@ export function PasswordPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="oldPassword"
                 />
@@ -147,7 +148,7 @@ export function PasswordPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="newPassword"
                 />
@@ -163,7 +164,7 @@ export function PasswordPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="passwordVerification"
                 />
@@ -173,7 +174,7 @@ export function PasswordPage() {
                   Cambiar contraseña
                 </SubmitButton>
                 {formError && (
-                  <p className="alert alert--danger text-xs">{formError}</p>
+                  <p className="alert alert--error text-xs">{formError}</p>
                 )}
                 {formMessage && (
                   <p className="alert alert--success">{formMessage}</p>
@@ -185,11 +186,11 @@ export function PasswordPage() {
       </section>
 
       <ConfirmDialog
-        open={modalOpen}
+        open={confirmDialogOpen}
         title={"Cambiar contraseña"}
         question={"¿Está seguro que desea cambiar su contraseña?"}
         onAccept={submitForm}
-        onDecline={cancelSubmit}
+        onCancel={cancelSubmit}
       />
     </main>
   );

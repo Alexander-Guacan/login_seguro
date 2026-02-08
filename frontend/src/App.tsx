@@ -16,6 +16,7 @@ import { PasswordPage } from "./pages/PasswordPage";
 import { UserPage } from "./pages/UserPage";
 import { CreateUserPage } from "./pages/CreateUserPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { Devices } from "./pages/Devices";
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="password" element={<PasswordPage />} />
+          <Route path="devices" element={<Devices />} />
 
           <Route element={<ProtectedRoute allowedRoles={[UserRole.ADMIN]} />}>
             <Route path="users">

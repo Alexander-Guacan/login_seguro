@@ -2,10 +2,11 @@ import { Link, NavLink } from "react-router";
 import { useAuth } from "../../hooks/auth/useAuth";
 import { useMemo } from "react";
 import type { UserRole } from "../../enums/userRole.enum";
-import { MdOutlinePowerSettingsNew } from "react-icons/md";
-import { AiOutlineUser } from "react-icons/ai";
+import { MdOutlineDevices, MdOutlinePowerSettingsNew } from "react-icons/md";
+import { AiOutlineMenu, AiOutlineUser } from "react-icons/ai";
 import { IoLockOpenOutline } from "react-icons/io5";
 import { PiUsersThree } from "react-icons/pi";
+import { useSideBar } from "../../hooks/useSideBar";
 
 interface NavOption {
   label: string;
@@ -20,6 +21,12 @@ interface NavSection {
 
 export function SideBar() {
   const { user, logout } = useAuth();
+  const { open, hide } = useSideBar();
+
+  const closeSession = () => {
+    logout();
+    hide();
+  };
 
   const optionsByRole = useMemo<NavSection[]>(() => {
     if (!user) return [];
@@ -34,6 +41,11 @@ export function SideBar() {
               label: "Contraseña",
               to: "/password",
               icon: <IoLockOpenOutline />,
+            },
+            {
+              label: "Dispositivos",
+              to: "/devices",
+              icon: <MdOutlineDevices />,
             },
           ],
         },
@@ -54,6 +66,11 @@ export function SideBar() {
               to: "/password",
               icon: <IoLockOpenOutline />,
             },
+            {
+              label: "Dispositivos",
+              to: "/devices",
+              icon: <MdOutlineDevices />,
+            },
           ],
         },
       ],
@@ -63,11 +80,14 @@ export function SideBar() {
   }, [user]);
 
   return (
-    <header className="h-full px-6 min-w-66 border-r-gray-800/10 border-r grid grid-rows-[auto_1fr_auto] overflow-hidden">
-      <section className="py-5">
-        <Link to={"/dashboard"} className="flex gap-x-2">
-          <i className="text-2xl not-italic">🔐</i>
-          <h2 className="font-semibold text-2xl">SecLog</h2>
+    <header className={`sidebar ${open ? "sidebar--open" : "sidebar--closed"}`}>
+      <section className="py-5 flex gap-x-3 items-center text-xl">
+        <button type="button" className="md:hidden" onClick={hide}>
+          <AiOutlineMenu />
+        </button>
+        <Link to={"/dashboard"} className="flex gap-x-2" onClick={hide}>
+          <i className="not-italic">🔐</i>
+          <h2 className="font-semibold">SecLog</h2>
         </Link>
       </section>
       <nav className="flex flex-col gap-y-6 py-3 overflow-x-auto">
@@ -79,9 +99,10 @@ export function SideBar() {
                 <li key={`label-${label}`}>
                   <NavLink
                     className={({ isActive }) =>
-                      `nav-option ${isActive ? "nav-option--active" : ""}`
+                      `sidebar__link ${isActive ? "sidebar__link--active" : ""}`
                     }
                     to={to}
+                    onClick={hide}
                   >
                     {icon}
                     <span>{label}</span>
@@ -93,9 +114,9 @@ export function SideBar() {
         ))}
       </nav>
       <div className="py-5">
-        <section className="bg-indigo-500/10 rounded-xl p-4 flex justify-between items-center">
-          <div className="flex gap-x-4 items-center">
-            <AiOutlineUser />
+        <section className="bg-indigo-500/10 rounded-xl p-4 gap-x-5 flex justify-between items-center">
+          <div className="flex gap-x-2 items-center">
+            <AiOutlineUser className="text-xl" />
             <header className="flex flex-col justify-between">
               <h3 className="font-semibold text-sm">{user?.fullName}</h3>
               <p className="text-xs text-gray-800/80">{user?.roleName}</p>
@@ -104,7 +125,7 @@ export function SideBar() {
           <button
             className="text-indigo-500 text-xl"
             type="button"
-            onClick={logout}
+            onClick={closeSession}
             title="Cerrar sesión"
           >
             <MdOutlinePowerSettingsNew />

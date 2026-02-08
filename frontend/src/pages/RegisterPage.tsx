@@ -86,8 +86,8 @@ export function RegisterPage() {
   };
 
   return (
-    <main className="content-center text-center w-full h-full">
-      <section className="form-container form-container--multicolumn mx-auto max-w-150">
+    <main className="content-center text-center h-full p-8">
+      <section className="form-container mx-auto border-0 max-w-150">
         <header>
           <h1 className="form-container__title">Registro de usuario</h1>
         </header>
@@ -97,7 +97,7 @@ export function RegisterPage() {
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, values, handleChange, handleBlur }) => (
-            <Form>
+            <Form className="sm:grid grid-cols-2 gap-x-6">
               <div className="field-group">
                 <label htmlFor="firstName">Nombre</label>
                 <Field
@@ -108,7 +108,7 @@ export function RegisterPage() {
                   required
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="firstName"
                 />
@@ -123,7 +123,7 @@ export function RegisterPage() {
                   required
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="lastName"
                 />
@@ -138,7 +138,7 @@ export function RegisterPage() {
                   required
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="email"
                 />
@@ -154,7 +154,7 @@ export function RegisterPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="password"
                 />
@@ -172,15 +172,15 @@ export function RegisterPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="passwordVerification"
                 />
               </div>
-              <div className="flex flex-col gap-y-4">
+              <div className="flex flex-col gap-y-4 col-start-1 col-end-3">
                 <SubmitButton loading={isSubmitting}>Registrarse</SubmitButton>
                 {formError && (
-                  <p className="alert alert--danger text-xs">{formError}</p>
+                  <p className="alert alert--error text-xs">{formError}</p>
                 )}
                 {formMessage && (
                   <p className="alert alert--success">{formMessage}</p>

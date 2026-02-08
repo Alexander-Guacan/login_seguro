@@ -44,8 +44,8 @@ export function LoginPage() {
   };
 
   return (
-    <main className="content-center text-center w-full h-full">
-      <section className="form-container mx-auto max-w-95">
+    <main className="content-center text-center w-full h-full p-8">
+      <section className="form-container mx-auto border-0 max-w-90">
         <header>
           <h1 className="form-container__title">Iniciar sesión</h1>
         </header>
@@ -60,7 +60,7 @@ export function LoginPage() {
                 <label htmlFor="email">Correo electrónico</label>
                 <Field type="email" id="email" name="email" />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="email"
                 />
@@ -75,14 +75,14 @@ export function LoginPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="password"
                 />
               </div>
               <SubmitButton loading={isSubmitting}>Ingresar</SubmitButton>
               {formError && (
-                <p className="alert alert--danger text-xs">{formError}</p>
+                <p className="alert alert--error text-xs">{formError}</p>
               )}
             </Form>
           )}

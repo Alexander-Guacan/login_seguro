@@ -56,13 +56,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshSession = async (
     storagedRefreshToken: string,
   ): Promise<User> => {
-    const { accessToken, refreshToken } =
-      await AuthService.refreshSession(storagedRefreshToken);
+    try {
+      const { accessToken, refreshToken } =
+        await AuthService.refreshSession(storagedRefreshToken);
 
-    setAuthHeader(accessToken);
-    storageRefreshToken(refreshToken);
+      setAuthHeader(accessToken);
+      storageRefreshToken(refreshToken);
 
-    return AuthService.getMe();
+      return AuthService.getMe();
+    } catch (error) {
+      removeAuthHeader();
+      removeStoragedRefreshToken();
+      throw error;
+    }
+  };
+
+  const reloadSession = async (): Promise<OperationResult> => {
+    try {
+      setLoading(true);
+
+      const storagedRefreshToken = getStoragedRefreshToken();
+
+      if (!storagedRefreshToken)
+        throw new Error(
+          "No se puedo actualizar los datos del usuario. Inicie sesión nuevamente.",
+        );
+
+      const user = await refreshSession(storagedRefreshToken);
+
+      setUser(user);
+      setLoading(false);
+
+      return {
+        success: true,
+        message: "La sesión se actualizó exitosamente.",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Ocurrió un problema, intentelo más tarde.",
+      };
+    }
   };
 
   useEffect(() => {
@@ -73,8 +110,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     refreshSession(storagedRefreshToken)
       .then(setUser)
       .catch(() => {
-        removeAuthHeader();
-        removeStoragedRefreshToken();
         setUser(null);
       })
       .finally(() => setLoading(false));
@@ -87,6 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         loading,
         login,
         logout,
+        reloadSession,
       }}
     >
       {children}

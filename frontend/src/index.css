@@ -61,11 +61,11 @@ body {
   }
 
   .link-solid {
-    @apply px-4 py-2 bg-indigo-500 rounded-lg border-2 border-indigo-500 text-white
+    @apply px-3 py-2 bg-indigo-500 rounded-lg border-2 border-indigo-500 text-white;
   }
 
   .link-outline {
-    @apply px-4 py-2 text-indigo-500 border-2 rounded-lg border-indigo-500;
+    @apply px-3 py-2 text-indigo-500 border-2 rounded-lg border-indigo-500;
   }
 
   .button-solid {
@@ -75,49 +75,115 @@ body {
       @apply bg-gray-800/40;
     }
   }
+  
+  .navbar {
+    @apply p-8;
 
-  .button-solid--success {
-    @apply bg-green-500;
-  }
+    .nav-links {
+      @apply fixed right-0 top-0 p-8 h-dvh w-60 flex flex-col gap-y-2 bg-indigo-500 text-white
+      z-10 transition-transform duration-300 ease-in-out;
 
-  .button-solid--danger {
-    @apply bg-red-500;
-  }
+      :is(.link-solid, .link-outline) {
+        @apply border-0 bg-transparent flex gap-x-2 justify-start items-center text-white;
+      }
+    }
 
-  .nav-option {
-    @apply flex gap-x-3 items-center p-3 transition-all ease-in-out duration-300 rounded-lg;
+    .nav-links--open {
+      @apply translate-x-0;
+    }
 
-    &:hover {
-      @apply bg-blue-400/15;
+    .nav-links--closed {
+      @apply translate-x-full;
     }
   }
 
-  .nav-option--active {
-    @apply bg-blue-400/90 text-white cursor-default;
+  @media (min-width: theme(--breakpoint-md)) {
+    .navbar {
+      .nav-links {
+        @apply flex flex-row static w-auto h-auto p-0 gap-x-4 bg-transparent;
 
-    &:hover {
-      @apply bg-blue-400/90 cursor-default;
+        .link-solid {
+          @apply px-3 py-2 bg-indigo-500 rounded-lg border-2 border-indigo-500 text-white;
+        }
+      
+        .link-outline {
+          @apply px-3 py-2 text-indigo-500 border-2 rounded-lg border-indigo-500;
+        }
+      }
+
+      .nav-links--closed {
+        @apply translate-x-0;
+      }
     }
   }
+
+  .sidebar {
+    @apply fixed left-0 top-0 h-full px-6 min-w-68 border-r-gray-800/10 border-r
+    grid grid-rows-[auto_1fr_auto] overflow-hidden bg-white z-10
+    transition-transform ease-in-out duration-300;
+
+    .sidebar__link {
+      @apply flex gap-x-3 items-center p-3 transition-all ease-in-out duration-300 rounded-lg;
+  
+      &:hover {
+        @apply bg-blue-400/15;
+      }
+    }
+  
+    .sidebar__link--active {
+      @apply bg-blue-500 text-white cursor-default;
+  
+      &:hover {
+        @apply bg-blue-500 cursor-default;
+      }
+    }
+  }
+
+  .sidebar--closed {
+    @apply -translate-x-full;
+  }
+
+  .sidebar--open {
+    @apply translate-x-0;
+  }
+
+  @media (min-width: theme(--breakpoint-md)) {
+    .sidebar {
+      @apply static;
+    }
+
+    .sidebar--closed {
+      @apply translate-x-0;
+    }
+  }  
 
   .alert {
-    @apply rounded-sm px-4 py-3 text-indigo-500 bg-blue-200 text-left;
+    @apply rounded-sm px-4 py-3 text-indigo-500 bg-blue-200 text-left
+    transition-opacity ease-in-out duration-500;
+  }
+  
+  .alert--invisible {
+    @apply opacity-0 pointer-events-none;
+  }
+  
+  .alert--visible {
+    @apply opacity-100;
   }
 
-  .alert--danger {
-    @apply bg-red-400/20 text-red-400;
+  .alert--error {
+    @apply bg-red-200 text-red-500;
   }
 
   .alert--warning {
-    @apply bg-amber-400/20 text-amber-400;
+    @apply bg-amber-200 text-amber-500;
   }
 
   .alert--success {
-    @apply bg-green-400/20 text-green-400;
+    @apply bg-green-200 text-green-500;
   }
 
   .form-container {
-    @apply flex flex-col gap-y-6 border border-gray-800/15 rounded-md p-6;
+    @apply flex flex-col flex-wrap gap-y-6 border border-gray-800/15 rounded-md p-6;
     
     .form-container__title {
       @apply font-semibold text-xl;
@@ -134,7 +200,7 @@ body {
           @apply text-red-400;
         }
 
-        &:has(.alert--danger) input {
+        &:has(.alert--error) input {
           @apply outline outline-red-400;
         }
       }
@@ -144,43 +210,40 @@ body {
       }
     }
   }
-
-  .form-container--multicolumn {
-    form {
-      @apply grid grid-cols-2 gap-x-6;
-
-      > :last-child {
-        grid-column-start: 1;
-        grid-column-end: 3;
-        @apply text-center;
-      }
-    }
-  }
     
   .table-container {
-    @apply flex flex-col gap-y-8 p-6 border rounded-lg border-gray-800/15 overflow-hidden;
+    @apply flex flex-col gap-y-8 p-6 border rounded-lg border-gray-800/15 overflow-hidden text-sm;
     
     .table-container__title {
-      @apply text-xl font-semibold;
+      @apply text-lg font-semibold;
     }
 
     .table-wrapper {
-      @apply overflow-x-auto grow;
+      @apply overflow-auto grow;
     }
     
     table {
-      @apply w-full grow;
+      @apply w-full grow border-collapse;
+
+      tr {
+        @apply border-b border-b-gray-800/15;
+      }
+      
+      tbody tr:last-child,
+      tfoot tr:last-child {
+        @apply border-0;
+      }
 
       th {
         @apply font-semibold;
       }
 
-      th, td { 
-        @apply py-4 pr-4 border-b border-b-gray-800/15 text-left text-base;
+      td {
+        @apply align-top;
       }
-      
-      tr:last-child > td {
-        border-bottom: none;
+
+      th, td { 
+        @apply py-4 pr-4 text-left text-sm;
       }
 
       tfoot td {
@@ -189,15 +252,48 @@ body {
     }
   }
 
-  .card {
-    @apply flex flex-col items-center justify-center gap-y-3 rounded-lg p-6 bg-indigo-500/15 text-indigo-500 text-center min-w-42 w-fit aspect-square;
+  .modal-container {
+    @apply fixed top-0 left-0 w-dvw h-dvh flex items-center justify-center bg-gray-900/20 backdrop-blur-sm z-10
+    transition-all ease-in-out duration-300;
 
-    .card__title {
-      @apply font-semibold;
+    .modal {
+      @apply bg-white text-gray-800 p-8 rounded-lg shadow-xl flex flex-col gap-y-6 m-8 max-w-120 border border-gray-200;
+
+      .modal__header {
+        @apply flex flex-col gap-y-4;
+
+        .modal__title {
+          @apply text-indigo-600 font-semibold text-xl;
+        }
+      }
+
+      .modal__actions {
+        @apply flex justify-end gap-x-6;
+
+        .button-primary {
+          @apply bg-indigo-500 text-white px-4 py-2 rounded-md hover:bg-indigo-600 transition;
+        }
+
+        .button-secondary {
+          @apply text-gray-600 hover:text-gray-800;
+        }
+      }
     }
+  }
+
+  .modal-container--open {
+    @apply visible opacity-100;
+  }
+
+  .modal-container--closed {       
+    @apply invisible opacity-0;
+  }
+
+  .card {
+    @apply flex flex-col items-center justify-center rounded-lg p-6 bg-indigo-500/15 text-indigo-500 text-center w-30 h-30;
 
     .card__value {
-      @apply text-xl font-semibold;
+      @apply font-semibold;
     }
   }
 }

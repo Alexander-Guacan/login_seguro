@@ -17,7 +17,9 @@ export function DashboardPage() {
         <ul>
           <li>
             <section className="card">
-              <AiOutlineUser className="text-4xl" />
+              <span className="text-2xl">
+                <AiOutlineUser />
+              </span>
               <header>
                 <h3 className="card__title">Usuarios</h3>
                 <span className="card__value">{total}</span>

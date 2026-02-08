@@ -1,44 +1,62 @@
+import { useState } from "react";
+import { ImSpinner2 } from "react-icons/im";
+
 interface Props {
   open: boolean;
   title: string;
   question: string;
-  onAccept: () => void;
-  onDecline: () => void;
+  note?: string;
+  disabled?: boolean;
+  onAccept: () => void | Promise<void>;
+  onCancel: () => void | Promise<void>;
 }
 
 export function ConfirmDialog({
   open,
   title,
   question,
+  note,
+  disabled,
   onAccept,
-  onDecline,
+  onCancel,
 }: Props) {
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleAccept = async () => {
+    setSubmitting(true);
+    await onAccept?.();
+    setSubmitting(false);
+  };
+
   return (
     <dialog
-      className={
-        open
-          ? "fixed w-dvw h-dvh flex items-center justify-center text-white bg-white/30 backdrop-blur-md top-0"
-          : ""
-      }
+      className={`modal-container ${open ? "modal-container--open" : "modal-container--closed"}`}
       open={open}
     >
-      <section className="bg-sky-800 p-8 rounded-md flex flex-col gap-y-6">
-        <header>
-          <h3 className="text-2xl font-semibold">{title}</h3>
+      <section className="modal">
+        <header className="modal__header">
+          <div>
+            <h3 className="modal__title">{title}</h3>
+            <p>{question}</p>
+          </div>
+          {note && <p className="text-sm"> {note}</p>}
         </header>
-        <p>{question}</p>
-        <footer className="flex justify-evenly">
+        <footer className="modal__actions">
           <button
-            className="button-solid button-solid--success"
+            className="button-primary"
             type="button"
-            onClick={onAccept}
+            onClick={handleAccept}
+            disabled={disabled || submitting}
           >
-            Aceptar
+            <span>
+              {submitting ? <ImSpinner2 className="animate-spin" /> : "Aceptar"}
+            </span>
           </button>
           <button
-            className="button-solid button-solid--danger"
+            className="button-secondary"
             type="button"
-            onClick={onDecline}
+            onClick={onCancel}
+            disabled={disabled || submitting}
           >
             Cancelar
           </button>

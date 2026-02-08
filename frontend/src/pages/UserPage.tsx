@@ -113,7 +113,7 @@ export function UserPage() {
       />
       <section className="form-container form-container--multicolumn mx-auto w-[70%]">
         <header>
-          <h3>Administrar usuario</h3>
+          <h3 className="form-container__title">Administrar usuario</h3>
         </header>
         <Formik
           initialValues={initialValues}
@@ -127,7 +127,7 @@ export function UserPage() {
                 <label htmlFor="firstName">Nombre</label>
                 <Field type="text" id="firstName" name="firstName" required />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="firstName"
                 />
@@ -136,7 +136,7 @@ export function UserPage() {
                 <label htmlFor="lastName">Apellido</label>
                 <Field type="text" id="lastName" name="lastName" required />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="lastName"
                 />
@@ -145,7 +145,7 @@ export function UserPage() {
                 <label htmlFor="email">Correo electrónico</label>
                 <Field type="email" id="email" name="email" required />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="email"
                 />
@@ -161,7 +161,7 @@ export function UserPage() {
                   </option>
                 </Field>
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="role"
                 />
@@ -176,7 +176,7 @@ export function UserPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="password"
                 />
@@ -191,7 +191,7 @@ export function UserPage() {
                   onBlur={handleBlur}
                 />
                 <ErrorMessage
-                  className="alert alert--danger text-xs"
+                  className="alert alert--error text-xs"
                   component="p"
                   name="passwordVerification"
                 />
@@ -205,7 +205,7 @@ export function UserPage() {
                   Actualizar
                 </SubmitButton>
                 {formError && (
-                  <p className="alert alert--danger text-xs">{formError}</p>
+                  <p className="alert alert--error text-xs">{formError}</p>
                 )}
                 {formMessage && (
                   <p className="alert alert--success">{formMessage}</p>
