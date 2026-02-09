@@ -28,7 +28,26 @@ export interface VerifyRegistrationResponseDTO {
   lastUsedAt: string;
 }
 
-export interface VerifyAuthenticationRequestDTO {
+export interface VerifyCredentialRequestDTO {
   email: string;
   credential: AuthenticationResponseJSON;
+}
+
+export interface RegisterFaceRequestDTO {
+  descriptor: number[];
+  label: string;
+  deviceInfo: string;
+}
+
+export interface FaceDescriptorResponseDTO {
+  id: string;
+  label?: string;
+  deviceInfo?: string;
+  createdAt: string;
+  lastUsedAt: string;
+}
+
+export interface VerifyFaceDescriptorDTO {
+  email: string;
+  descriptor: number[];
 }

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Playground - Liveness Detection</title>
+    <script src="https://cdn.jsdelivr.net/npm/@simplewebauthn/browser@10.0.0/dist/bundle/index.umd.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <style>
+        /* ... TUS ESTILOS ANTERIORES SE MANTIENEN IGUAL ... */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .header h1 { font-size: 2.5rem; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .card { background: white; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .card h2 { color: #667eea; margin-bottom: 15px; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; }
+        .card h3 { color: #555; margin: 20px 0 10px; font-size: 1.1rem; border-bottom: 2px solid #f0f0f0; padding-bottom: 5px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-weight: 500; }
+        input, textarea { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px; transition: border-color 0.3s; }
+        input:focus, textarea:focus { outline: none; border-color: #667eea; }
+        button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: 600; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; margin-top: 10px; }
+        button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .btn-danger { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        .output { background: #f5f5f5; border-radius: 6px; padding: 15px; margin-top: 15px; max-height: 300px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; word-wrap: break-word; }
+        .output.success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .output.error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .status { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; margin-left: 10px; }
+        .status.connected { background: #d4edda; color: #155724; }
+        .status.disconnected { background: #f8d7da; color: #721c24; }
+        .info-box { background: #e7f3ff; border-left: 4px solid #2196F3; padding: 12px; margin: 15px 0; border-radius: 4px; font-size: 14px; }
+        .credential-item { background: #f9f9f9; padding: 10px; margin-bottom: 8px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .credential-item button { width: auto; padding: 6px 12px; font-size: 12px; margin-top: 0; }
+
+        /* ESTILOS NUEVOS PARA LIVENESS */
+        .liveness-indicator {
+            position: absolute; 
+            top: 10px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 10;
+            display: none;
+        }
+        .liveness-success {
+            border: 2px solid #4caf50;
+            color: #4caf50;
+            background: rgba(255,255,255, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Biometric Playground</h1>
+            <p>Con Detección de Vivacidad (Anti-Spoofing)</p>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>⚙️ Configuración</h2>
+                <div class="form-group">
+                    <label>API Base URL</label>
+                    <input type="text" id="apiUrl" value="https://6c56-200-50-232-234.ngrok-free.app/api">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="email" value="ariel@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>Password (para login tradicional)</label>
+                    <input type="password" id="password" value="Admin123!">
+                </div>
+                <button onclick="login()">🔑 Login Tradicional</button>
+                <div class="info-box">
+                    <strong>Token:</strong> <span id="tokenStatus" class="status disconnected">No autenticado</span>
+                </div>
+                <div id="configOutput" class="output" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h2>🆔 WebAuthn</h2>
+                <div class="form-group">
+                    <label>Nombre del dispositivo</label>
+                    <input type="text" id="deviceName" value="Mi laptop">
+                </div>
+                <button onclick="registerWebAuthn()">📱 Registrar Credencial</button>
+                <div class="form-group" style="margin-top:15px">
+                    <label>Email para Login WebAuthn</label>
+                    <input type="email" id="authEmail" value="ariel@gmail.com">
+                </div>
+                <button onclick="authenticateWebAuthn()">🔐 Login con WebAuthn</button>
+                <div id="registerOutput" class="output" style="display: none;"></div>
+                <div id="authOutput" class="output" style="display: none;"></div>
+            </div>
+
+            <div class="card">
+                <h2>😊 Reconocimiento Facial</h2>
+                
+                <div class="info-box">
+                    <strong>Estado:</strong> <span id="faceApiStatus">Cargando modelos...</span>
+                </div>
+                
+                <div style="position: relative; width: 100%; max-width: 400px; margin: 0 auto; aspect-ratio: 3/4; overflow: hidden; border-radius: 12px; background: black;">
+    
+                    <div id="livenessInstruction" class="liveness-indicator">😐 Esperando rostro...</div>
+                    
+                    <video id="video" playsinline autoplay muted 
+                        style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);">
+                    </video>
+                    
+                    <canvas id="overlay" 
+                            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+                    </canvas>
+
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <button onclick="startCamera()" style="flex: 1;">📷 Iniciar Cámara</button>
+                    <button onclick="stopCamera()" style="flex: 1;" class="btn-danger">⏹️ Detener</button>
+                </div>
+                
+                <h3>Acciones</h3>
+                <div class="form-group">
+                    <label>Etiqueta para registro</label>
+                    <input type="text" id="faceLabel" value="Mi rostro">
+                </div>
+                
+                <button onclick="startLivenessCheck('register')">📸 Validar Vida y Registrar</button>
+                <button onclick="startLivenessCheck('login')" class="btn-secondary">✅ Validar Vida y Login</button>
+                
+                <div id="faceOutput" class="output" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>📋 Logs</h2>
+            <button onclick="clearLogs()" class="btn-danger" style="width: auto; padding: 5px 10px; margin-bottom: 10px;">Limpiar</button>
+            <div id="activityLogs" class="output"></div>
+        </div>
+    </div>
+
+    <script>
+        // ================= CONFIGURACIÓN BÁSICA =================
+        const { startRegistration, startAuthentication } = SimpleWebAuthnBrowser;
+        let accessToken = '';
+        let videoStream = null;
+        let modelsLoaded = false;
+        let livenessInterval = null;
+
+        function log(message, type = 'info') {
+            const logs = document.getElementById('activityLogs');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#721c24' : type === 'success' ? '#155724' : '#004085';
+            logs.innerHTML = `<div style="color: ${color};">[${timestamp}] ${message}</div>` + logs.innerHTML;
+        }
+
+        function clearLogs() { document.getElementById('activityLogs').innerHTML = ''; }
+        
+        function showOutput(elementId, content, isError = false) {
+            const output = document.getElementById(elementId);
+            output.style.display = 'block';
+            output.className = isError ? 'output error' : 'output success';
+            output.textContent = typeof content === 'object' ? JSON.stringify(content, null, 2) : content;
+        }
+
+        // ================= CARGA DE MODELOS =================
+        async function loadFaceApiModels() {
+            try {
+                const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+                log('⏳ Cargando modelos IA...', 'info');
+                await Promise.all([
+                    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+                    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+                ]);
+                modelsLoaded = true;
+                document.getElementById('faceApiStatus').textContent = '✅ Modelos cargados';
+                document.getElementById('faceApiStatus').style.color = '#155724';
+            } catch (error) {
+                console.error(error);
+                log('❌ Error cargando modelos', 'error');
+            }
+        }
+
+        async function startCamera() {
+            const video = document.getElementById('video');
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+                video.srcObject = videoStream;
+                log('📷 Cámara iniciada', 'success');
+            } catch (error) { log('❌ Error cámara: ' + error.message, 'error'); }
+        }
+
+        function stopCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+                document.getElementById('video').srcObject = null;
+                if(livenessInterval) clearInterval(livenessInterval);
+                document.getElementById('livenessInstruction').style.display = 'none';
+            }
+        }
+
+        // ================= MATEMÁTICAS CORREGIDAS (SOLUCIÓN NaN) =================
+        
+        // 1. Nueva función nativa para calcular distancia (evita errores de librería)
+        function calcDistance(point1, point2) {
+            return Math.hypot(point1.x - point2.x, point1.y - point2.y);
+        }
+
+        // 2. Cálculo del EAR usando la nueva función
+        function getEyeAspectRatio(eye) {
+            // eye es un array de 6 puntos.
+            // Puntos verticales
+            const dist1 = calcDistance(eye[1], eye[5]);
+            const dist2 = calcDistance(eye[2], eye[4]);
+            // Punto horizontal
+            const distHorizontal = calcDistance(eye[0], eye[3]);
+
+            if (distHorizontal === 0) return 0; // Evitar división por cero
+
+            return (dist1 + dist2) / (2.0 * distHorizontal);
+        }
+
+        // ================= LÓGICA DE DETECCIÓN (LIVENESS) =================
+        async function startLivenessCheck(mode) {
+            if (!modelsLoaded || !videoStream) {
+                alert("Inicia la cámara y espera a que carguen los modelos");
+                return;
+            }
+
+            const instruction = document.getElementById('livenessInstruction');
+            instruction.style.display = 'block';
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('overlay');
+
+            // --- CORRECCIÓN MÓVIL ---
+            // Usamos getBoundingClientRect() que es más preciso en móviles con zoom/retina displays
+            const videoRect = video.getBoundingClientRect();
+            
+            const displaySize = { 
+                width: videoRect.width, 
+                height: videoRect.height 
+            };
+
+            // Forzar al canvas a tener el tamaño visual exacto del video
+            canvas.width = videoRect.width;
+            canvas.height = videoRect.height;
+
+            // Decirle a face-api que use esas dimensiones
+            faceapi.matchDimensions(canvas, displaySize);
+
+            let blinkDetected = false;
+            let eyesOpen = true; 
+            let consecutivelyClosedFrames = 0;
+
+            // CONFIGURACIÓN DE SENSIBILIDAD
+            const BLINK_THRESHOLD = 0.32; // Ajustado para ser más preciso
+
+            instruction.textContent = "😐 Calibrando...";
+            log("🏁 Iniciando prueba de vida...", 'info');
+
+            if(livenessInterval) clearInterval(livenessInterval);
+
+            livenessInterval = setInterval(async () => {
+                const detection = await faceapi
+                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                    .withFaceLandmarks()
+                    .withFaceDescriptor();
+
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                if (!detection) {
+                    instruction.textContent = "❌ Rostro no detectado";
+                    return;
+                }
+
+                // IMPORTANTE: Redimensionar
+                const resizedDetections = faceapi.resizeResults(detection, displaySize);
+                faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+                // Obtener ojos
+                const landmarks = resizedDetections.landmarks;
+                const leftEye = landmarks.getLeftEye();
+                const rightEye = landmarks.getRightEye();
+
+                // Calcular EAR
+                const leftEAR = getEyeAspectRatio(leftEye);
+                const rightEAR = getEyeAspectRatio(rightEye);
+                
+                // Usamos Math.max para evitar problemas si un ojo falla
+                const avgEAR = (leftEAR + rightEAR) / 2;
+
+                // VISUALIZACIÓN DEBUG (Ahora debería salir un número)
+                const estadoOjo = avgEAR < BLINK_THRESHOLD ? "CERRADO 🔽" : "ABIERTO 🔼";
+                instruction.textContent = `👁️ ${estadoOjo} (Valor: ${avgEAR.toFixed(3)})`;
+
+                // LÓGICA
+                if (avgEAR < BLINK_THRESHOLD) {
+                    // Ojos cerrados
+                    if (eyesOpen) {
+                        consecutivelyClosedFrames++;
+                        if (consecutivelyClosedFrames > 1) {
+                            instruction.style.background = "rgba(255, 165, 0, 0.9)";
+                            eyesOpen = false; 
+                        }
+                    }
+                } else {
+                    // Ojos abiertos
+                    consecutivelyClosedFrames = 0;
+                    if (!eyesOpen) {
+                        // PARPADEÓ
+                        blinkDetected = true;
+                        instruction.textContent = "✅ ¡Vida Confirmada!";
+                        instruction.className = "liveness-indicator liveness-success";
+                        clearInterval(livenessInterval);
+                        
+                        // Enviar al backend
+                        const descriptor = Array.from(detection.descriptor);
+                        if (mode === 'register') {
+                            performRegistration(descriptor);
+                        } else {
+                            performLogin(descriptor);
+                        }
+                    } else {
+                        instruction.style.background = "rgba(0, 0, 0, 0.7)";
+                    }
+                    eyesOpen = true;
+                }
+            }, 50); // Velocidad media
+        }
+
+        // ================= API BACKEND =================
+        async function performRegistration(descriptor) {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const label = document.getElementById('faceLabel').value;
+
+            if (!accessToken) {
+                alert("Para registrar necesitas estar logueado primero (Login Tradicional)");
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}/biometric/facial/register`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ descriptor, label, deviceInfo: navigator.userAgent })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
+                showOutput('faceOutput', result);
+                log('🎉 Registro Facial Exitoso', 'success');
+                setTimeout(() => { document.getElementById('livenessInstruction').style.display = 'none'; }, 2000);
+            } catch (error) {
+                log('❌ Error registro: ' + error.message, 'error');
+            }
+        }
+
+        async function performLogin(descriptor) {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('email').value;
+
+            try {
+                const response = await fetch(`${apiUrl}/biometric/facial/verify`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
+                    body: JSON.stringify({ email, descriptor })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
+
+                accessToken = result.accessToken;
+                document.getElementById('tokenStatus').textContent = '✅ Autenticado con Rostro';
+                document.getElementById('tokenStatus').className = 'status connected';
+                showOutput('faceOutput', result);
+                log('🎉 LOGIN FACIAL EXITOSO', 'success');
+                setTimeout(() => { document.getElementById('livenessInstruction').style.display = 'none'; }, 2000);
+            } catch (error) {
+                showOutput('faceOutput', error.message, true);
+                log('❌ Fallo en login: ' + error.message, 'error');
+            }
+        }
+
+        // Funciones auxiliares Login/WebAuthn (mantenidas simples para el ejemplo)
+        async function login() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const response = await fetch(`${apiUrl}/auth/login`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                if(!response.ok) throw new Error(data.message);
+                accessToken = data.accessToken;
+                document.getElementById('tokenStatus').className = 'status connected';
+                document.getElementById('tokenStatus').textContent = 'Autenticado ✓';
+            } catch(e) { log(e.message, 'error'); }
+        }
+        async function registerWebAuthn() { alert("Usa login tradicional primero"); }
+        async function authenticateWebAuthn() { alert("Configuración WebAuthn pendiente"); }
+
+        window.addEventListener('load', loadFaceApiModels);
+    </script>
+</body>
+</html>

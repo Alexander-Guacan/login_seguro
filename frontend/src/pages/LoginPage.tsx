@@ -88,7 +88,7 @@ export function LoginPage() {
           )}
         </Formik>
         <Link className="link-outline" to={"/biometric-login"}>
-          Usar biometría o PIN
+          Llave de acceso
         </Link>
       </section>
       <article className="py-6">

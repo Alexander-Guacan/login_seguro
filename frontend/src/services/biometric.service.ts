@@ -11,7 +11,7 @@ export const BiometricService = {
     try {
       const response = await BiometricAPI.getCredentials();
       const dtos = response.data;
-      return dtos.map(BiometricMapper.toEntity);
+      return dtos.map(BiometricMapper.toCredentialEntity);
     } catch {
       throw new Error(
         "El usuario no tiene registrado metodos de autenticación biométricas",
@@ -21,7 +21,7 @@ export const BiometricService = {
 
   async deleteCredential(id: string) {
     try {
-      await BiometricAPI.deleteCredential(id);
+      BiometricAPI.deleteCredential(id);
     } catch {
       throw new Error("La credencial que intenta borrar no existe");
     }
@@ -64,7 +64,7 @@ export const BiometricService = {
 
       const credential = await startAuthentication({ optionsJSON: options });
 
-      const authResponse = await BiometricAPI.verifyAuthentication({
+      const authResponse = await BiometricAPI.verifyCredential({
         email,
         credential,
       });
@@ -72,6 +72,58 @@ export const BiometricService = {
       return authResponse.data;
     } catch (error) {
       if (error instanceof Error) throw error;
+      throw new Error(
+        "No se pudo usar este método para iniciar sesión. Asegurese de tener un método de autenticación válido.",
+      );
+    }
+  },
+
+  async registerFaceDescripor(descriptor: number[], deviceName: string) {
+    try {
+      const response = await BiometricAPI.registerFaceDescriptor({
+        descriptor,
+        deviceInfo: "",
+        label: deviceName,
+      });
+
+      const dto = response.data;
+
+      return BiometricMapper.toDescriptorEntity(dto);
+    } catch {
+      throw new Error("No se pudo registrar al usuario. Intentelo más tarde.");
+    }
+  },
+
+  async getFacialDescriptors() {
+    try {
+      const response = await BiometricAPI.getFacialDescriptors();
+      const dtos = response.data;
+      return dtos.map(BiometricMapper.toDescriptorEntity);
+    } catch {
+      throw new Error(
+        "No se pudieron obtener los Face IDs del usuario. Intentelo más tarde.",
+      );
+    }
+  },
+
+  async deleteFacialDescriptor(id: string) {
+    try {
+      BiometricAPI.deleteFacialDescriptor(id);
+    } catch {
+      throw new Error(
+        "No se pudo eliminar este método de autenticación. Intentelo más tarde.",
+      );
+    }
+  },
+
+  async verifyFaceDescriptor(email: string, descriptor: number[]) {
+    try {
+      const response = await BiometricAPI.verifyFaceDescriptor({
+        email,
+        descriptor,
+      });
+      return response.data;
+    } catch {
       throw new Error(
         "No se pudo usar este método para iniciar sesión. Asegurese de tener un método de autenticación válido.",
       );

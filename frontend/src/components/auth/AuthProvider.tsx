@@ -17,14 +17,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => getStoragedRefreshToken() !== null,
   );
 
+  const configureSession = ({
+    user,
+    accessToken,
+    refreshToken,
+  }: {
+    user: User;
+    accessToken: string;
+    refreshToken: string;
+  }) => {
+    setUser(user);
+    setAuthHeader(accessToken);
+    storageRefreshToken(refreshToken);
+  };
+
   const login = async (values: LoginRequestDTO): Promise<OperationResult> => {
     try {
-      const { user, accessToken, refreshToken } =
-        await AuthService.login(values);
+      const loginData = await AuthService.login(values);
 
-      setUser(user);
-      setAuthHeader(accessToken);
-      storageRefreshToken(refreshToken);
+      configureSession(loginData);
 
       return {
         success: true,
@@ -41,14 +52,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const biometricLogin = async (email: string): Promise<OperationResult> => {
+  const credentialLogin = async (email: string): Promise<OperationResult> => {
     try {
-      const { user, accessToken, refreshToken } =
-        await AuthService.biometricLogin(email);
+      const loginData = await AuthService.credentialLogin(email);
 
-      setUser(user);
-      setAuthHeader(accessToken);
-      storageRefreshToken(refreshToken);
+      configureSession(loginData);
+
+      return {
+        success: true,
+        message: "Inicio de sesión exitoso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Ocurrió un problema, intentelo más tarde",
+      };
+    }
+  };
+  const faceLogin = async (
+    email: string,
+    descriptor: number[],
+  ): Promise<OperationResult> => {
+    try {
+      const loginData = await AuthService.faceLogin(email, descriptor);
+
+      configureSession(loginData);
 
       return {
         success: true,
@@ -145,7 +176,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         loading,
         login,
-        biometricLogin,
+        credentialLogin,
+        faceLogin,
         logout,
         reloadSession,
       }}

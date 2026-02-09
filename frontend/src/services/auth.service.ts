@@ -38,10 +38,25 @@ export const AuthService = {
     }
   },
 
-  async biometricLogin(email: string) {
+  async credentialLogin(email: string) {
     try {
       const { user, refreshToken, accessToken } =
         await BiometricService.verifyCredential(email.trim());
+
+      return {
+        user: UserMapper.toEntity(user),
+        accessToken,
+        refreshToken,
+      };
+    } catch {
+      throw new Error("No se pudo iniciar sesión por este método.");
+    }
+  },
+
+  async faceLogin(email: string, descriptor: number[]) {
+    try {
+      const { user, refreshToken, accessToken } =
+        await BiometricService.verifyFaceDescriptor(email.trim(), descriptor);
 
       return {
         user: UserMapper.toEntity(user),

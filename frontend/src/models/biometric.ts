@@ -33,3 +33,31 @@ export class BiometricCredential {
     this.lastUsedAt = lastUsedAt;
   }
 }
+
+export class BiometricDescriptor {
+  public id: string;
+  public deviceName: string;
+  public deviceInfo: string;
+  public createdAt: Date;
+  public lastUsedAt: Date;
+
+  constructor({
+    id,
+    deviceName,
+    deviceInfo,
+    createdAt,
+    lastUsedAt,
+  }: {
+    id: string;
+    deviceName: string;
+    deviceInfo: string;
+    createdAt: Date;
+    lastUsedAt: Date;
+  }) {
+    this.id = id;
+    this.deviceName = deviceName;
+    this.deviceInfo = deviceInfo;
+    this.createdAt = createdAt;
+    this.lastUsedAt = lastUsedAt;
+  }
+}

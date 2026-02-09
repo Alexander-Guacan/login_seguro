@@ -72,7 +72,7 @@ export function useCredentials() {
   }, []);
 
   return {
-    devices: data,
+    credentials: data,
     loading,
     deleteCredential,
     addCredential,

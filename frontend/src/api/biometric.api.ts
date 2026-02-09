@@ -2,7 +2,10 @@ import type {
   VerifyRegistrationResponseDTO,
   BiometricCredentialResponseDTO,
   VerifyRegistrationRequestDTO,
-  VerifyAuthenticationRequestDTO,
+  VerifyCredentialRequestDTO,
+  FaceDescriptorResponseDTO,
+  RegisterFaceRequestDTO,
+  VerifyFaceDescriptorDTO,
 } from "../dto/biometric";
 import { api } from "./api";
 import type { LoginResponseDTO } from "../dto/auth";
@@ -19,7 +22,7 @@ export const BiometricAPI = {
   },
 
   deleteCredential(id: string) {
-    return api.delete(`/biometric/webauthn/credentials/${id}`);
+    api.delete(`/biometric/webauthn/credentials/${id}`);
   },
 
   generateRegistrationOptions() {
@@ -46,10 +49,31 @@ export const BiometricAPI = {
     );
   },
 
-  verifyAuthentication(dto: VerifyAuthenticationRequestDTO) {
+  verifyCredential(dto: VerifyCredentialRequestDTO) {
     return api.post<LoginResponseDTO>(
       "/biometric/webauthn/authentication/verify",
       dto,
     );
+  },
+
+  registerFaceDescriptor(dto: RegisterFaceRequestDTO) {
+    return api.post<FaceDescriptorResponseDTO>(
+      "/biometric/facial/register",
+      dto,
+    );
+  },
+
+  getFacialDescriptors() {
+    return api.get<FaceDescriptorResponseDTO[]>(
+      "/biometric/facial/descriptors",
+    );
+  },
+
+  deleteFacialDescriptor(id: string) {
+    api.delete(`/biometric/facial/descriptors/${id}`);
+  },
+
+  verifyFaceDescriptor(dto: VerifyFaceDescriptorDTO) {
+    return api.post<LoginResponseDTO>("/biometric/facial/verify", dto);
   },
 };

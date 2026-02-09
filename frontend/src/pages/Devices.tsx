@@ -3,17 +3,31 @@ import { PageHeader } from "../components/PageSection/PageHeader";
 import { useCredentials } from "../hooks/biometric/useCredentials";
 import { TbDeviceDesktopOff } from "react-icons/tb";
 import { ConfirmDialog } from "../components/Dialog/ConfirmDialog";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ImSpinner2 } from "react-icons/im";
 import { AiOutlinePlus } from "react-icons/ai";
 import { MdOutlineFingerprint } from "react-icons/md";
-import { InputDialog } from "../components/Dialog/InputDialog";
 import { useDialog } from "../hooks/useDialog";
 import { useAlert } from "../hooks/useAlert";
+import { FaceDetectorModal } from "../components/Modal/FaceDetectionModal";
+import { InputDialog } from "../components/Dialog/InputDialog";
+import { useFacialDescriptors } from "../hooks/biometric/useFacialDescriptors";
+import { BiometricCredential, BiometricDescriptor } from "../models/biometric";
+import { LuScanFace } from "react-icons/lu";
 
 export function Devices() {
-  const { devices, loading, deleteCredential, addCredential } =
-    useCredentials();
+  const {
+    credentials,
+    loading: loadingCredentials,
+    deleteCredential,
+    addCredential,
+  } = useCredentials();
+  const {
+    descriptors,
+    loading: loadingDescriptors,
+    addDescriptor,
+    deleteDescriptor,
+  } = useFacialDescriptors();
   const {
     open: confirmDialogOpen,
     show: showConfirmDialog,
@@ -24,10 +38,37 @@ export function Devices() {
     show: showInputDialog,
     hide: hideInputDialog,
   } = useDialog();
+  const {
+    open: faceDetectorModalOpen,
+    show: showFaceDetectorModal,
+    hide: hideFaceDetectorModal,
+  } = useDialog();
   const { showAlert } = useAlert();
-  const [deviceId, setDeviceId] = useState<string | null>(null);
+  const [deviceToDelete, setDeviceToDelete] = useState<
+    BiometricCredential | BiometricDescriptor | null
+  >(null);
+  const [biometricMethod, setBiometricMethod] = useState<
+    "fingerprint" | "facial" | null
+  >(null);
+  const [deviceName, setDeviceName] = useState<string | null>(null);
 
-  const registerDevice = async (deviceName: string) => {
+  const selectFingerprint = () => {
+    setBiometricMethod("fingerprint");
+    showInputDialog();
+  };
+
+  const selectFacialId = () => {
+    setBiometricMethod("facial");
+    showInputDialog();
+  };
+
+  const finishBiometricRegister = () => {
+    hideInputDialog();
+    hideFaceDetectorModal();
+    setDeviceName(null);
+  };
+
+  const registerFingerprint = async (deviceName: string) => {
     const result = await addCredential(deviceName);
 
     if (!result.success) {
@@ -36,18 +77,36 @@ export function Devices() {
       showAlert(result.message, { type: "success" });
     }
 
-    hideInputDialog();
+    finishBiometricRegister();
   };
 
-  const verifyDeleteDevice = (id: string) => {
-    setDeviceId(id);
-    showConfirmDialog();
+  const handleInputDialog = async (deviceName: string) => {
+    if (!biometricMethod) {
+      hideInputDialog();
+      return;
+    }
+
+    switch (biometricMethod) {
+      case "fingerprint": {
+        await registerFingerprint(deviceName);
+        break;
+      }
+
+      case "facial": {
+        setDeviceName(deviceName);
+        showFaceDetectorModal();
+        break;
+      }
+
+      default:
+        break;
+    }
   };
 
-  const deleteDevice = async () => {
-    if (!deviceId) return;
+  const handleFaceDetection = async (descriptor: number[]) => {
+    if (!deviceName) return;
 
-    const result = await deleteCredential(deviceId);
+    const result = await addDescriptor(descriptor, deviceName);
 
     if (!result.success) {
       showAlert(result.error, { type: "error" });
@@ -55,9 +114,43 @@ export function Devices() {
       showAlert(result.message, { type: "success" });
     }
 
-    setDeviceId(null);
+    finishBiometricRegister();
+  };
+
+  const verifyDeleteDevice = (
+    device: BiometricCredential | BiometricDescriptor,
+  ) => {
+    setDeviceToDelete(device);
+    showConfirmDialog();
+  };
+
+  const deleteDevice = async () => {
+    if (!deviceToDelete) return;
+
+    const deleteDevice =
+      deviceToDelete instanceof BiometricCredential
+        ? deleteCredential
+        : deleteDescriptor;
+
+    const result = await deleteDevice(deviceToDelete.id);
+
+    if (!result.success) {
+      showAlert(result.error, { type: "error" });
+    } else {
+      showAlert(result.message, { type: "success" });
+    }
+
+    setDeviceToDelete(null);
     hideConfirmDialog();
   };
+
+  const loading = loadingCredentials || loadingDescriptors;
+
+  const devices = useMemo<(BiometricCredential | BiometricDescriptor)[]>(() => {
+    if (!credentials || !descriptors) return [];
+
+    return [...credentials, ...descriptors];
+  }, [credentials, descriptors]);
 
   return (
     <main className="h-full flex flex-col gap-y-6">
@@ -69,14 +162,24 @@ export function Devices() {
         <header className="flex flex-col gap-y-2">
           <div className="flex flex-wrap justify-between gap-x-8 gap-y-1 items-center">
             <h2 className="text-lg">Autenticación</h2>
-            <button
-              className="button-solid flex gap-x-2 items-center text-sm"
-              type="button"
-              onClick={showInputDialog}
-            >
-              <AiOutlinePlus />
-              <span>Agregar</span>
-            </button>
+            <div className="flex flex-col gap-y-4 justify-between">
+              <button
+                className="button-solid flex gap-x-2 items-center text-sm"
+                type="button"
+                onClick={selectFingerprint}
+              >
+                <AiOutlinePlus />
+                <span>Agregar huella o PIN</span>
+              </button>
+              <button
+                className="button-solid flex gap-x-2 items-center text-sm"
+                type="button"
+                onClick={selectFacialId}
+              >
+                <AiOutlinePlus />
+                <span>Agregar Face ID</span>
+              </button>
+            </div>
           </div>
           <p className="text-sm">
             Los dispositivos registrados pueden iniciar sesión usando una
@@ -90,32 +193,36 @@ export function Devices() {
           </article>
         ) : devices && devices.length > 0 ? (
           <ul className="flex flex-wrap gap-4 overflow-y-auto">
-            {devices.map((credential) => (
+            {devices.map((device) => (
               <li
                 className="bg-blue-500/15 rounded-lg p-4 flex flex-col gap-y-2 w-fit"
-                key={credential.id}
+                key={device.id}
               >
                 <div className="flex justify-between items-center text-lg">
-                  <MdOutlineFingerprint className="text-xl" />
+                  {device instanceof BiometricCredential ? (
+                    <MdOutlineFingerprint className="text-xl" />
+                  ) : (
+                    <LuScanFace className="text-xl" />
+                  )}
                   <h4 className="text-blue-500 font-semibold ">
-                    {credential.deviceName}
+                    {device.deviceName}
                   </h4>
                 </div>
                 <div className="flex justify-between items-center gap-x-12 text-sm">
                   <div className="flex flex-col gap-y-1">
-                    <time dateTime={credential.createdAt.toISOString()}>
+                    <time dateTime={device.createdAt.toISOString()}>
                       <span className="font-semibold">Registrado en:</span>{" "}
-                      {credential.createdAt.toLocaleDateString("es-EC")}
+                      {device.createdAt.toLocaleDateString("es-EC")}
                     </time>
-                    <time dateTime={credential.lastUsedAt.toISOString()}>
+                    <time dateTime={device.lastUsedAt.toISOString()}>
                       <span className="font-semibold">Ultimo uso:</span>{" "}
-                      {credential.lastUsedAt.toLocaleDateString("es-EC")}
+                      {device.lastUsedAt.toLocaleDateString("es-EC")}
                     </time>
                   </div>
                   <button
                     type="button"
                     title="Eliminar método de autenticación"
-                    onClick={() => verifyDeleteDevice(credential.id)}
+                    onClick={() => verifyDeleteDevice(device)}
                   >
                     <HiOutlineTrash className="text-xl" />
                   </button>
@@ -146,8 +253,14 @@ export function Devices() {
         title="Agregar credencial"
         label="Nombre del dispositivo"
         disabled={loading}
-        onSubmit={registerDevice}
+        onSubmit={handleInputDialog}
         onCancel={hideInputDialog}
+      />
+
+      <FaceDetectorModal
+        open={faceDetectorModalOpen}
+        onDetection={handleFaceDetection}
+        onCancel={finishBiometricRegister}
       />
     </main>
   );

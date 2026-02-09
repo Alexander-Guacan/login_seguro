@@ -1,9 +1,18 @@
-import { ErrorMessage, Field, Form, Formik, type FormikHelpers } from "formik";
+import {
+  ErrorMessage,
+  Field,
+  Form,
+  Formik,
+  type FormikHelpers,
+  type FormikProps,
+} from "formik";
 import * as yup from "yup";
 import { useAuth } from "../hooks/auth/useAuth";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { SubmitButton } from "../components/Form/SubmitButton";
+import { FaceDetectorModal } from "../components/Modal/FaceDetectionModal";
+import { useDialog } from "../hooks/useDialog";
 
 interface FormValues {
   email: string;
@@ -22,7 +31,13 @@ const validationSchema = yup.object({
 
 export function BiometricLoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
-  const { biometricLogin } = useAuth();
+  const formRef = useRef<FormikProps<FormValues>>(null);
+  const { credentialLogin, faceLogin } = useAuth();
+  const {
+    open: faceDetectorOpen,
+    hide: hideFaceDector,
+    show: showFaceDetector,
+  } = useDialog();
   const navigate = useNavigate();
 
   const handleSubmit = async (
@@ -31,7 +46,7 @@ export function BiometricLoginPage() {
   ) => {
     setFormError(null);
 
-    const result = await biometricLogin(form.email);
+    const result = await credentialLogin(form.email);
 
     if (!result.success) {
       setFormError(result.error);
@@ -41,6 +56,38 @@ export function BiometricLoginPage() {
     }
 
     setSubmitting(false);
+  };
+
+  const startFaceLogin = async () => {
+    if (!formRef.current) return;
+
+    const errors = await formRef.current.validateForm();
+    const hasErrors = Object.values(errors).some(
+      (error) => error != null && error.length > 0,
+    );
+
+    if (hasErrors) return;
+
+    showFaceDetector();
+  };
+
+  const handleFaceDetection = async (descriptor: number[]) => {
+    if (!formRef.current) return;
+
+    formRef.current.setSubmitting(true);
+    const email = formRef.current.values.email;
+
+    const result = await faceLogin(email, descriptor);
+
+    if (!result.success) {
+      setFormError(result.error);
+    } else {
+      formRef.current.resetForm();
+      navigate("/dashboard");
+    }
+
+    formRef.current.setSubmitting(false);
+    hideFaceDector();
   };
 
   return (
@@ -53,8 +100,9 @@ export function BiometricLoginPage() {
           initialValues={initValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
+          innerRef={formRef}
         >
-          {({ isSubmitting }) => (
+          {({ isSubmitting, dirty }) => (
             <Form noValidate>
               <div className="field-group">
                 <label htmlFor="email">Correo electrónico</label>
@@ -65,8 +113,15 @@ export function BiometricLoginPage() {
                   name="email"
                 />
               </div>
-              <SubmitButton loading={isSubmitting}>
+              <SubmitButton loading={isSubmitting} disabled={!dirty}>
                 Huella digital o PIN
+              </SubmitButton>
+              <SubmitButton
+                loading={isSubmitting}
+                disabled={!dirty}
+                onClick={startFaceLogin}
+              >
+                Face ID
               </SubmitButton>
               {formError && (
                 <p className="alert alert--error text-xs">{formError}</p>
@@ -83,6 +138,12 @@ export function BiometricLoginPage() {
           </Link>
         </p>
       </article>
+
+      <FaceDetectorModal
+        open={faceDetectorOpen}
+        onDetection={handleFaceDetection}
+        onCancel={hideFaceDector}
+      />
     </main>
   );
 }
