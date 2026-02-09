@@ -7,6 +7,7 @@ export interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (values: LoginRequestDTO) => Promise<OperationResult>;
+  biometricLogin: (email: string) => Promise<OperationResult>;
   logout: () => void;
   reloadSession: () => Promise<OperationResult>;
 }

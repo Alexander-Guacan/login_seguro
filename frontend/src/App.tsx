@@ -17,6 +17,7 @@ import { UserPage } from "./pages/UserPage";
 import { CreateUserPage } from "./pages/CreateUserPage";
 import { RegisterPage } from "./pages/RegisterPage";
 import { Devices } from "./pages/Devices";
+import { BiometricLoginPage } from "./pages/BiometricLoginPage";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route element={<PublicLayout />}>
           <Route index element={<HomePage />} />
           <Route path="login" element={<LoginPage />} />
+          <Route path="biometric-login" element={<BiometricLoginPage />} />
           <Route path="register" element={<RegisterPage />} />
         </Route>
       </Route>

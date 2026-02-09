@@ -48,7 +48,7 @@ export const BiometricAPI = {
 
   verifyAuthentication(dto: VerifyAuthenticationRequestDTO) {
     return api.post<LoginResponseDTO>(
-      "/biometric/webauthn/registration/verify",
+      "/biometric/webauthn/authentication/verify",
       dto,
     );
   },

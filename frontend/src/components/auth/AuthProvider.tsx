@@ -41,6 +41,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const biometricLogin = async (email: string): Promise<OperationResult> => {
+    try {
+      const { user, accessToken, refreshToken } =
+        await AuthService.biometricLogin(email);
+
+      setUser(user);
+      setAuthHeader(accessToken);
+      storageRefreshToken(refreshToken);
+
+      return {
+        success: true,
+        message: "Inicio de sesión exitoso",
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "Ocurrió un problema, intentelo más tarde",
+      };
+    }
+  };
+
   const logout = async () => {
     const refreshToken = getStoragedRefreshToken();
 
@@ -121,6 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         loading,
         login,
+        biometricLogin,
         logout,
         reloadSession,
       }}

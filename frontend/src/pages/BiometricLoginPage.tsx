@@ -1,15 +1,16 @@
 import { ErrorMessage, Field, Form, Formik, type FormikHelpers } from "formik";
-import type { LoginRequestDTO } from "../dto/auth";
 import * as yup from "yup";
 import { useAuth } from "../hooks/auth/useAuth";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { PasswordInput } from "../components/Form/PasswordInput";
 import { SubmitButton } from "../components/Form/SubmitButton";
 
-const initValues: LoginRequestDTO = {
+interface FormValues {
+  email: string;
+}
+
+const initValues: FormValues = {
   email: "",
-  password: "",
 };
 
 const validationSchema = yup.object({
@@ -17,21 +18,20 @@ const validationSchema = yup.object({
     .string()
     .email("Ingrese un correo válido")
     .required("Este campo es obligatorio"),
-  password: yup.string().required("Este campo es obligatorio"),
 });
 
-export function LoginPage() {
+export function BiometricLoginPage() {
   const [formError, setFormError] = useState<string | null>(null);
-  const { login } = useAuth();
+  const { biometricLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (
-    values: LoginRequestDTO,
-    { setSubmitting, resetForm }: FormikHelpers<LoginRequestDTO>,
+    form: FormValues,
+    { setSubmitting, resetForm }: FormikHelpers<FormValues>,
   ) => {
     setFormError(null);
 
-    const result = await login(values);
+    const result = await biometricLogin(form.email);
 
     if (!result.success) {
       setFormError(result.error);
@@ -54,7 +54,7 @@ export function LoginPage() {
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
         >
-          {({ isSubmitting, values, handleChange, handleBlur }) => (
+          {({ isSubmitting }) => (
             <Form noValidate>
               <div className="field-group">
                 <label htmlFor="email">Correo electrónico</label>
@@ -65,31 +65,15 @@ export function LoginPage() {
                   name="email"
                 />
               </div>
-              <div className="field-group">
-                <label htmlFor="password">Contraseña</label>
-                <PasswordInput
-                  id="password"
-                  name="password"
-                  value={values.password}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
-                <ErrorMessage
-                  className="alert alert--error text-xs"
-                  component="p"
-                  name="password"
-                />
-              </div>
-              <SubmitButton loading={isSubmitting}>Ingresar</SubmitButton>
+              <SubmitButton loading={isSubmitting}>
+                Huella digital o PIN
+              </SubmitButton>
               {formError && (
                 <p className="alert alert--error text-xs">{formError}</p>
               )}
             </Form>
           )}
         </Formik>
-        <Link className="link-outline" to={"/biometric-login"}>
-          Usar biometría o PIN
-        </Link>
       </section>
       <article className="py-6">
         <p>

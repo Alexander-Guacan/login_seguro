@@ -5,6 +5,7 @@ import type {
   RegisterRequestDTO,
 } from "../dto/auth";
 import { UserMapper } from "../mappers/user.mapper";
+import { BiometricService } from "./biometric.service";
 
 let refreshPromise: Promise<RefreshResponseDTO> | null = null;
 
@@ -34,6 +35,21 @@ export const AuthService = {
       };
     } catch {
       throw new Error("Correo o contraseña incorrectos");
+    }
+  },
+
+  async biometricLogin(email: string) {
+    try {
+      const { user, refreshToken, accessToken } =
+        await BiometricService.verifyCredential(email.trim());
+
+      return {
+        user: UserMapper.toEntity(user),
+        accessToken,
+        refreshToken,
+      };
+    } catch {
+      throw new Error("No se pudo iniciar sesión por este método.");
     }
   },
 

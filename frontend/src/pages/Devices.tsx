@@ -1,6 +1,6 @@
 import { HiOutlineTrash } from "react-icons/hi";
 import { PageHeader } from "../components/PageSection/PageHeader";
-import { useCredentials } from "../hooks/biometric/useDevices";
+import { useCredentials } from "../hooks/biometric/useCredentials";
 import { TbDeviceDesktopOff } from "react-icons/tb";
 import { ConfirmDialog } from "../components/Dialog/ConfirmDialog";
 import { useState } from "react";
