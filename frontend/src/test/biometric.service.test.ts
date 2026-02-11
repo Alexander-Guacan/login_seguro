@@ -82,4 +82,29 @@ describe("BiometricService", () => {
       "No se pudieron obtener los Face IDs del usuario. Intentelo más tarde.",
     );
   });
+
+  it("llama a BiometricAPI.deleteCredential con el id correcto", async () => {
+    const id = "cred123";
+
+    // Simulamos que el API resuelve sin devolver nada específico
+    mockedBiometricAPI.deleteCredential.mockImplementation(() =>
+      Promise.resolve(),
+    );
+
+    await BiometricService.deleteCredential(id);
+
+    expect(mockedBiometricAPI.deleteCredential).toHaveBeenCalledWith(id);
+  });
+
+  it("lanza error si BiometricAPI.deleteCredential falla", async () => {
+    const id = "cred123";
+
+    mockedBiometricAPI.deleteCredential.mockImplementation(() => {
+      throw new Error("Fail");
+    });
+
+    await expect(BiometricService.deleteCredential(id)).rejects.toThrow(
+      "La credencial que intenta borrar no existe",
+    );
+  });
 });
