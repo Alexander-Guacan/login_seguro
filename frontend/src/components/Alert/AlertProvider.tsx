@@ -14,7 +14,7 @@ export function AlertProvider({ children }: { children: React.ReactNode }) {
     type: "default",
     duration: DEFAULT_ALERT_AUTO_HIDE_DURATION,
   });
-  const timeoutRef = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const cancelTimeout = () => {
     if (!timeoutRef.current) return;

@@ -66,7 +66,7 @@ RULES_DB = {
     ],
     "javascript": [
         {"id": "dom_xss", "sev": "CRITICAL", "pat": r'(innerHTML|outerHTML|document\.write)\s*='},
-        {"id": "eval_injection", "sev": "CRITICAL", "pat": r'(eval|setTimeout|setInterval)\s*\('},
+        {"id": "eval_injection", "sev": "CRITICAL",  "pat": r'\b(eval\s*\(|setTimeout\s*\(\s*[\'"]|setInterval\s*\(\s*[\'"])'},
         {"id": "cmd_injection", "sev": "CRITICAL", "pat": r'(child_process|exec|spawn).*(\+|%|`|\$\{)'},
         {"id": "prototype_pollution", "sev": "HIGH", "pat": r'__proto__|prototype'},
         {"id": "xss_react", "sev": "HIGH", "pat": r'dangerouslySetInnerHTML'}
