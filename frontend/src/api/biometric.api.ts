@@ -22,7 +22,7 @@ export const BiometricAPI = {
   },
 
   deleteCredential(id: string) {
-    api.delete(`/biometric/webauthn/credentials/${id}`);
+    return api.delete(`/biometric/webauthn/credentials/${id}`);
   },
 
   generateRegistrationOptions() {
@@ -70,7 +70,7 @@ export const BiometricAPI = {
   },
 
   deleteFacialDescriptor(id: string) {
-    api.delete(`/biometric/facial/descriptors/${id}`);
+    return api.delete(`/biometric/facial/descriptors/${id}`);
   },
 
   verifyFaceDescriptor(dto: VerifyFaceDescriptorDTO) {

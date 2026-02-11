@@ -21,7 +21,7 @@ export const BiometricService = {
 
   async deleteCredential(id: string) {
     try {
-      BiometricAPI.deleteCredential(id);
+      await BiometricAPI.deleteCredential(id);
     } catch {
       throw new Error("La credencial que intenta borrar no existe");
     }
@@ -108,7 +108,7 @@ export const BiometricService = {
 
   async deleteFacialDescriptor(id: string) {
     try {
-      BiometricAPI.deleteFacialDescriptor(id);
+      await BiometricAPI.deleteFacialDescriptor(id);
     } catch {
       throw new Error(
         "No se pudo eliminar este método de autenticación. Intentelo más tarde.",
