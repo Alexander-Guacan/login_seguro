@@ -241,6 +241,7 @@ jobs:
       working-directory: backend-secure-login
       run: |
         npm ci
+        npx prisma generate
         npm run test
       continue-on-error: true
       id: backend_tests
