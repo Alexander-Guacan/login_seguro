@@ -111,7 +111,7 @@ export function UserPage() {
         title="Perfil de usuario"
         breadcrumbsLabels={["Dashboard", "Usuarios", user.fullName]}
       />
-      <section className="form-container form-container--multicolumn mx-auto w-[70%]">
+      <section className="form-container max-w-120 w-full self-center">
         <header>
           <h3 className="form-container__title">Administrar usuario</h3>
         </header>

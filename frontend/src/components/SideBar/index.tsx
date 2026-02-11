@@ -7,6 +7,7 @@ import { AiOutlineMenu, AiOutlineUser } from "react-icons/ai";
 import { IoLockOpenOutline } from "react-icons/io5";
 import { PiUsersThree } from "react-icons/pi";
 import { useSideBar } from "../../hooks/useSideBar";
+import Logo from "../../assets/logo.png";
 
 interface NavOption {
   label: string;
@@ -85,9 +86,13 @@ export function SideBar() {
         <button type="button" className="md:hidden" onClick={hide}>
           <AiOutlineMenu />
         </button>
-        <Link to={"/dashboard"} className="flex gap-x-2" onClick={hide}>
-          <i className="not-italic">🔐</i>
-          <h2 className="font-semibold">SecLog</h2>
+        <Link
+          to={"/dashboard"}
+          className="flex gap-x-2 items-center text-2xl text-indigo-500"
+          onClick={hide}
+        >
+          <img className="logo" src={Logo} alt="SecureLog's logo" />
+          <h2 className="font-bold">SecLog</h2>
         </Link>
       </section>
       <nav className="flex flex-col gap-y-6 py-3 overflow-x-auto">

@@ -31,7 +31,7 @@ export function PageHeader({ title, breadcrumbsLabels }: Props) {
     <section className="px-6 py-4 rounded-md bg-indigo-500/10 flex flex-col gap-y-1">
       <h1 className="font-bold md:text-xl">{title}</h1>
       <nav>
-        <ul className="flex gap-x-2 text-sm items-center">
+        <ul className="flex flex-wrap gap-x-2 text-sm items-center">
           {breadcrumbs.map(({ text, url }, index) => {
             const lastItem = index === breadcrumbs.length - 1;
 

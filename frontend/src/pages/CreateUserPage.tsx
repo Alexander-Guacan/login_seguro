@@ -100,7 +100,7 @@ export function CreateUserPage() {
         title="Crear usuario"
         breadcrumbsLabels={["Dashboard", "Usuarios", "Registrar usuario"]}
       />
-      <section className="form-container form-container--multicolumn">
+      <section className="form-container">
         <header>
           <h2 className="form-container__title">Usuario</h2>
         </header>

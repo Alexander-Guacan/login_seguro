@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AiOutlineMenu, AiOutlineUser } from "react-icons/ai";
 import { RiLoginBoxLine } from "react-icons/ri";
 import { Link, NavLink } from "react-router";
+import Logo from "../../assets/logo.png";
 
 export function NavBar() {
   const [open, setOpen] = useState(false);
@@ -15,10 +16,10 @@ export function NavBar() {
       <nav className="flex gap-x-5 justify-between">
         <Link
           to={"/"}
-          className="flex gap-x-2 justify-center items-center text-2xl"
+          className="flex gap-x-2 justify-center items-center text-2xl text-indigo-500"
           onClick={hide}
         >
-          <i className="not-italic">🔐</i>
+          <img className="logo" src={Logo} alt="SecureLog's logo" />
           <h2 className="font-bold">SecLog</h2>
         </Link>
 
@@ -28,7 +29,7 @@ export function NavBar() {
         <ul
           className={`nav-links ${open ? "nav-links--open" : "nav-links--closed md:flex"}`}
         >
-          <li className="flex justify-end">
+          <li className="flex justify-end pb-2">
             <button className="md:hidden text-2xl" type="button" onClick={hide}>
               <AiOutlineMenu />
             </button>
