@@ -21,7 +21,7 @@ import {
   VerifyAuthenticationDto,
 } from './dto/webauthn.dto';
 import { RegisterFaceDto, VerifyFaceDto } from './dto/facial.dto';
-import { AuthService } from 'src/auth';
+import { AuthService } from '../auth';
 
 /**
  * Endpoints WebAuthn:

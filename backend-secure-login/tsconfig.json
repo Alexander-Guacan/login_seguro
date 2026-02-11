@@ -13,7 +13,8 @@
     "outDir": "./dist",
     "baseUrl": "./",
     "paths": {
-      "@generated/*": ["generated/*"]
+      "@generated/*": ["generated/*"],
+      "@common/*": ["./src/common/*"]
     },
     "incremental": true,
     "skipLibCheck": true,
