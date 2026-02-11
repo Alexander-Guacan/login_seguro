@@ -56,8 +56,8 @@ jobs:
     - name: Get changed files
       run: |
         git fetch origin ${{ github.base_ref }}
-        git diff --name-only origin/${{ github.base_ref }} -- \
-          frontend backend > changed_files.txt || true
+        git diff --name-only --diff-filter=AM origin/${{ github.base_ref }} -- \
+          frontend/src backend-secure-login/src > changed_files.txt || true
 
     # -------------------------------------------------
     # 6. Run security scanner (ML + Heuristics)
@@ -160,170 +160,169 @@ jobs:
         python security_scan/notify_telegram.py stage_fail "Etapa 1 - Análisis de Seguridad"
 
   testing:
-    needs: security-scan
-    if: success()
-    runs-on: ubuntu-latest
+  needs: security-scan
+  if: success()
+  runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
+  permissions:
+    contents: write
+    issues: write
+    pull-requests: write
 
-    outputs:
-      tests_passed: ${{ steps.test_result.outputs.tests_passed }}
+  outputs:
+    tests_passed: ${{ steps.test_result.outputs.tests_passed }}
 
-    steps:
-    # -------------------------------------------------
-    # 1. Checkout repository
-    # -------------------------------------------------
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+  steps:
+  # -------------------------------------------------
+  # 1. Checkout repository
+  # -------------------------------------------------
+  - name: Checkout repository
+    uses: actions/checkout@v4
+    with:
+      fetch-depth: 0
 
-    # -------------------------------------------------
-    # 2. Setup Python
-    # -------------------------------------------------
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
+  # -------------------------------------------------
+  # 2. Setup Node.js (for NestJS + React)
+  # -------------------------------------------------
+  - name: Setup Node
+    uses: actions/setup-node@v4
+    with:
+      node-version: "20"
+      cache: "npm"
 
-    # -------------------------------------------------
-    # 3. Install minimal Python dependencies
-    # -------------------------------------------------
-    - name: Install Python dependencies for notifications and tests
-      run: |
-        python -m pip install --upgrade pip
-        pip install requests fastapi pytest httpx dotenv
+  # -------------------------------------------------
+  # 3. Setup Python (solo para notificaciones Telegram)
+  # -------------------------------------------------
+  - name: Setup Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: "3.10"
 
-    # -------------------------------------------------
-    # 4. Notify Telegram - Stage 2 start
-    # -------------------------------------------------
-    - name: Notify start of Stage 2
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      run: |
-        python security_scan/notify_telegram.py stage_start "Etapa 2 - Merge automático y pruebas"
+  - name: Install notification dependencies
+    run: |
+      python -m pip install --upgrade pip
+      pip install requests
 
-    # -------------------------------------------------
-    # 5. Configure Git identity
-    # -------------------------------------------------
-    - name: Configure Git identity
-      run: |
-        git config user.name "github-actions[bot]"
-        git config user.email "github-actions[bot]@users.noreply.github.com"
+  # -------------------------------------------------
+  # 4. Notify Telegram - Stage 2 start
+  # -------------------------------------------------
+  - name: Notify start of Stage 2
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    run: |
+      python security_scan/notify_telegram.py stage_start "Etapa 2 - Merge automático y pruebas"
 
-    # -------------------------------------------------
-    # 6. Auto-merge dev -> test
-    # -------------------------------------------------
-    - name: Auto merge dev into test
-      run: |
-        git checkout test
-        git merge origin/develop --no-edit
-        git push origin test
+  # -------------------------------------------------
+  # 5. Configure Git identity
+  # -------------------------------------------------
+  - name: Configure Git identity
+    run: |
+      git config user.name "github-actions[bot]"
+      git config user.email "github-actions[bot]@users.noreply.github.com"
 
-    # -------------------------------------------------
-    # 7. Run backend tests
-    # -------------------------------------------------
-    - name: Run backend tests
-      working-directory: src/backend
-      run: |
-        python -m pytest
-      continue-on-error: true
-      id: backend_tests
+  # -------------------------------------------------
+  # 6. Auto-merge dev -> test
+  # -------------------------------------------------
+  - name: Auto merge dev into test
+    run: |
+      git checkout test
+      git merge origin/develop --no-edit
+      git push origin test
 
-    # -------------------------------------------------
-    # 8. Setup Node.js
-    # -------------------------------------------------
-    - name: Setup Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: "20"
+  # -------------------------------------------------
+  # 7. Run backend tests (NestJS)
+  # -------------------------------------------------
+  - name: Run backend tests
+    working-directory: backend-secure-login
+    run: |
+      npm ci
+      npm run test
+    continue-on-error: true
+    id: backend_tests
 
-    # -------------------------------------------------
-    # 9. Run frontend tests
-    # -------------------------------------------------
-    - name: Run frontend tests
-      working-directory: src/frontend
-      run: |
-        npm ci
-        npm run test
-      continue-on-error: true
-      id: frontend_tests
+  # -------------------------------------------------
+  # 8. Run frontend tests (React)
+  # -------------------------------------------------
+  - name: Run frontend tests
+    working-directory: frontend
+    run: |
+      npm ci
+      npm run test
+    continue-on-error: true
+    id: frontend_tests
 
-    # -------------------------------------------------
-    # 10. Evaluate test results
-    # -------------------------------------------------
-    - name: Evaluate test results
-      id: test_result
-      run: |
-        if [[ "${{ steps.backend_tests.outcome }}" == "failure" || "${{ steps.frontend_tests.outcome }}" == "failure" ]]; then
-          echo "tests_passed=false" >> $GITHUB_OUTPUT
-        else
-          echo "tests_passed=true" >> $GITHUB_OUTPUT
-        fi
+  # -------------------------------------------------
+  # 9. Evaluate test results
+  # -------------------------------------------------
+  - name: Evaluate test results
+    id: test_result
+    run: |
+      if [[ "${{ steps.backend_tests.outcome }}" == "failure" || "${{ steps.frontend_tests.outcome }}" == "failure" ]]; then
+        echo "tests_passed=false" >> $GITHUB_OUTPUT
+      else
+        echo "tests_passed=true" >> $GITHUB_OUTPUT
+      fi
 
-    # -------------------------------------------------
-    # 11. Notify Telegram - Test results
-    # -------------------------------------------------
-    - name: Notify test results
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      run: |
-        if [[ "${{ steps.test_result.outputs.tests_passed }}" == "true" ]]; then
-          python security_scan/notify_telegram.py stage_success "Tests backend y frontend ejecutados correctamente"
-        else
-          python security_scan/notify_telegram.py stage_fail "Fallaron uno o más tests (backend/frontend)"
-        fi
+  # -------------------------------------------------
+  # 10. Notify Telegram - Test results
+  # -------------------------------------------------
+  - name: Notify test results
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    run: |
+      if [[ "${{ steps.test_result.outputs.tests_passed }}" == "true" ]]; then
+        python security_scan/notify_telegram.py stage_success "Tests backend (NestJS) y frontend (React) ejecutados correctamente"
+      else
+        python security_scan/notify_telegram.py stage_fail "Fallaron uno o más tests (NestJS/React)"
+      fi
 
-    # -------------------------------------------------
-    # 12. Create issue on test failure
-    # -------------------------------------------------
-    - name: Create issue on test failure
-      if: steps.test_result.outputs.tests_passed == 'false'
-      uses: actions/github-script@v7
-      with:
-        script: |
-          github.rest.issues.create({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            title: "❌ Tests fallidos tras merge automático",
-            body: `
-            Se completó correctamente la **Etapa 1**, pero fallaron las pruebas en la **Etapa 2**.
+  # -------------------------------------------------
+  # 11. Create issue on test failure
+  # -------------------------------------------------
+  - name: Create issue on test failure
+    if: steps.test_result.outputs.tests_passed == 'false'
+    uses: actions/github-script@v7
+    with:
+      script: |
+        github.rest.issues.create({
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          title: "❌ Tests fallidos tras merge automático",
+          body: `
+          Se completó correctamente la **Etapa 1**, pero fallaron las pruebas en la **Etapa 2**.
 
-            📌 Backend tests: ${{ steps.backend_tests.outcome }}
-            📌 Frontend tests: ${{ steps.frontend_tests.outcome }}
+          📌 Backend (NestJS): ${{ steps.backend_tests.outcome }}
+          📌 Frontend (React): ${{ steps.frontend_tests.outcome }}
 
-            🔗 Workflow:
-            https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            `,
-            labels: ["tests-failed"]
-          })
+          🔗 Workflow:
+          https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          `,
+          labels: ["tests-failed"]
+        })
 
-    # -------------------------------------------------
-    # 13. Notify Telegram - Stage 2 failure
-    # -------------------------------------------------
-    - name: Notify test failure
-      if: steps.test_result.outputs.tests_passed == 'false'
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      run: |
-        python security_scan/notify_telegram.py stage_fail "Etapa 2 - Fallaron las pruebas"
+  # -------------------------------------------------
+  # 12. Notify test failure
+  # -------------------------------------------------
+  - name: Notify test failure
+    if: steps.test_result.outputs.tests_passed == 'false'
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    run: |
+      python security_scan/notify_telegram.py stage_fail "Etapa 2 - Fallaron las pruebas"
 
-    # -------------------------------------------------
-    # 14. Notify Telegram - Stage 2 success
-    # -------------------------------------------------
-    - name: Notify Stage 2 success
-      if: steps.test_result.outputs.tests_passed == 'true'
-      env:
-        TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-      run: |
-        python security_scan/notify_telegram.py stage_success "Etapa 2 - Merge y pruebas completadas correctamente"
+  # -------------------------------------------------
+  # 13. Notify Stage 2 success
+  # -------------------------------------------------
+  - name: Notify Stage 2 success
+    if: steps.test_result.outputs.tests_passed == 'true'
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    run: |
+      python security_scan/notify_telegram.py stage_success "Etapa 2 - Merge y pruebas completadas correctamente"
 
   deploy:
     needs: testing
